@@ -18,7 +18,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
       {/* 16:10 Cover image */}
       <Link
         href={`/proyectos/${project.slug}`}
-        className="relative aspect-[16/10] w-full overflow-hidden bg-[#0c1822] block focus:outline-none"
+        className="relative aspect-[16/10] w-full overflow-hidden bg-paper-soft block focus:outline-none"
         tabIndex={-1}
       >
         <Image
@@ -29,7 +29,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#081621] via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent opacity-60" />
 
         {/* Status Pill */}
         <div className="absolute top-4 left-4 flex gap-2 items-center">
@@ -50,43 +50,43 @@ export function ProjectCard({ project }: ProjectCardProps) {
       {/* Body */}
       <div className="p-6 sm:p-7 flex flex-col flex-1 justify-between">
         <div>
-          <span className="text-xs uppercase tracking-wider text-[#D42365] font-medium block mb-2">
+          <span className="text-xs uppercase tracking-wider text-accent-deep font-medium block mb-2">
             {project.area}
           </span>
 
-          <Link href={`/proyectos/${project.slug}`} className="block group-hover:text-[#f472b6] transition-colors">
-            <h3 className="font-display text-2xl font-normal text-white mb-2.5 leading-snug">
+          <Link href={`/proyectos/${project.slug}`} className="block group-hover:text-accent transition-colors">
+            <h3 className="font-display text-2xl font-normal text-ink mb-2.5 leading-snug">
               {project.name}
             </h3>
           </Link>
 
-          <p className="text-sm text-[#abb3bf] line-clamp-2 leading-relaxed mb-4">
+          <p className="text-sm text-muted line-clamp-2 leading-relaxed mb-4">
             {project.excerpt}
           </p>
 
           {/* Meta row: Presupuesto · mockup and impact */}
-          <div className="py-3 px-4 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-xs text-[#abb3bf] mb-4">
+          <div className="py-3 px-4 rounded-xl bg-ink/5 border border-line flex items-center justify-between text-xs text-muted mb-4">
             <div className="flex items-center gap-1.5">
-              <span className="text-white font-medium">Presupuesto:</span>
-              <span className="text-[#f472b6] font-semibold">{project.indicators.budget}</span>
-              <span className="text-[#abb3bf]/60">(mockup)</span>
+              <span className="text-ink font-medium">Presupuesto:</span>
+              <span className="text-accent-deep font-semibold">{project.indicators.budget}</span>
+              <span className="text-muted/70">(mockup)</span>
             </div>
             <div className="flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-[#abb3bf]" />
+              <Users className="w-3.5 h-3.5 text-muted" />
               <span>{project.indicators.peopleImpacted}</span>
             </div>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+        <div className="pt-4 border-t border-line flex items-center justify-between">
           <Link
             href={`/proyectos/${project.slug}`}
-            className="inline-flex items-center text-sm font-medium text-[#D42365] group-hover:text-[#f472b6] transition-colors"
+            className="inline-flex items-center text-sm font-medium text-accent-deep group-hover:opacity-70 transition-opacity"
           >
             Ver proyecto
             <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:translate-x-1" />
           </Link>
-          <span className="text-xs text-[#abb3bf]">{project.indicators.volunteers} voluntarios</span>
+          <span className="text-xs text-muted">{project.indicators.volunteers} voluntarios</span>
         </div>
       </div>
     </article>

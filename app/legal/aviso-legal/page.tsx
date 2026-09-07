@@ -11,11 +11,11 @@ export const metadata: Metadata = {
 
 export default function AvisoLegalPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24 sm:py-16 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-24 sm:pb-16 space-y-8">
       <div>
         <Link
           href="/"
-          className="inline-flex items-center text-xs uppercase tracking-wider text-[#abb3bf] hover:text-white transition-colors"
+          className="inline-flex items-center text-xs uppercase tracking-wider text-muted hover:text-ink transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
           Volver a Inicio
@@ -23,23 +23,23 @@ export default function AvisoLegalPage() {
       </div>
 
       <header>
-        <h1 className="font-display text-4xl sm:text-5xl font-normal text-white mb-4">
+        <h1 className="font-display text-4xl sm:text-5xl font-normal text-ink mb-4">
           Aviso Legal
         </h1>
-        <p className="text-sm text-[#abb3bf]">
+        <p className="text-sm text-muted">
           Última actualización: Febrero de 2026 · Cumplimiento de la Ley 34/2002 (LSSI-CE)
         </p>
       </header>
 
-      <div className="liquid-glass rounded-3xl p-8 sm:p-10 border border-white/10 space-y-8 text-sm text-[#C4CEDC] leading-relaxed">
+      <div className="liquid-glass rounded-3xl p-8 sm:p-10 border border-line space-y-8 text-sm text-ink leading-relaxed">
         <section className="space-y-3">
-          <h2 className="font-display text-2xl text-white">
+          <h2 className="font-display text-2xl text-ink">
             1. Datos identificativos de la entidad
           </h2>
           <p>
             En cumplimiento del deber de información estipulado en el artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y del Comercio Electrónico (LSSI-CE), se facilitan los siguientes datos:
           </p>
-          <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm text-[#abb3bf]">
+          <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm text-muted">
             <li><strong>Denominación:</strong> {siteConfig.name} (Club juvenil adscrito al Distrito 2202 de Rotary International)</li>
             <li><strong>Domicilio social:</strong> Pamplona / Iruña, Comunidad Foral de Navarra, España</li>
             <li><strong>Contacto electrónico:</strong> {siteConfig.email} (mockup editable)</li>
@@ -48,7 +48,7 @@ export default function AvisoLegalPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="font-display text-2xl text-white">
+          <h2 className="font-display text-2xl text-ink">
             2. Condiciones de uso
           </h2>
           <p>
@@ -57,7 +57,7 @@ export default function AvisoLegalPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="font-display text-2xl text-white">
+          <h2 className="font-display text-2xl text-ink">
             3. Propiedad intelectual e industrial
           </h2>
           <p>
@@ -66,7 +66,7 @@ export default function AvisoLegalPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="font-display text-2xl text-white">
+          <h2 className="font-display text-2xl text-ink">
             4. Legislación aplicable y jurisdicción
           </h2>
           <p>

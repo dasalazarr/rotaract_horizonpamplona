@@ -32,7 +32,7 @@ export function DonationBand({
   return (
     <section
       id="donation-band"
-      className="relative rounded-3xl p-8 sm:p-12 lg:p-14 border border-[#D42365]/35 bg-gradient-to-b from-[#132230] to-[#0a1824] shadow-2xl overflow-hidden"
+      className="relative rounded-3xl p-8 sm:p-12 lg:p-14 border border-accent/30 bg-gradient-to-b from-accent-wash to-paper-soft shadow-2xl overflow-hidden"
     >
       {/* Subtle magenta tint accent glow */}
       <div
@@ -41,127 +41,127 @@ export function DonationBand({
       />
 
       <div className="relative z-10 max-w-3xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D42365]/15 border border-[#D42365]/30 text-xs font-semibold uppercase tracking-wider text-[#f472b6] mb-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-wash border border-accent/30 text-xs font-semibold uppercase tracking-wider text-accent-deep mb-4">
           <Heart className="w-3 h-3 fill-current" />
           <span>Dona</span>
         </div>
 
-        <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-normal text-white mb-4 leading-tight">
+        <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-normal text-ink mb-4 leading-tight">
           {title}
         </h2>
 
-        <p className="text-[#abb3bf] text-base sm:text-lg leading-relaxed mb-8 max-w-2xl">
+        <p className="text-muted text-base sm:text-lg leading-relaxed mb-8 max-w-2xl">
           {subtitle}
         </p>
 
         {conceptNote && (
-          <div className="mb-8 p-4 rounded-xl bg-white/5 border border-white/10 text-sm text-[#abb3bf]">
-            <span className="text-white font-medium">Concepto recomendado: </span>
-            <span className="text-[#f472b6] font-mono font-semibold">{conceptNote}</span>
+          <div className="mb-8 p-4 rounded-xl bg-ink/5 border border-line text-sm text-muted">
+            <span className="text-ink font-medium">Concepto recomendado: </span>
+            <span className="text-accent-deep font-mono font-semibold">{conceptNote}</span>
           </div>
         )}
 
         {/* TWO METHOD CARDS SIDE BY SIDE */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
           {/* BIZUM CARD */}
-          <div className="liquid-glass rounded-2xl p-6 flex flex-col justify-between border border-white/10">
+          <div className="liquid-glass rounded-2xl p-6 flex flex-col justify-between border border-line">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#D42365]/20 flex items-center justify-center text-[#f472b6]">
+                  <div className="w-10 h-10 rounded-full bg-accent-wash flex items-center justify-center text-accent-deep">
                     <Smartphone className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-white font-medium text-base">Bizum ONG</h3>
-                    <p className="text-xs text-[#abb3bf]">Donación instantánea</p>
+                    <h3 className="text-ink font-medium text-base">Bizum ONG</h3>
+                    <p className="text-xs text-muted">Donación instantánea</p>
                   </div>
                 </div>
-                <span className="text-xs text-[#abb3bf]/70 px-2 py-0.5 rounded bg-white/5">
+                <span className="text-xs text-muted/80 px-2 py-0.5 rounded bg-ink/5">
                   (mockup)
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between mb-2">
+              <div className="p-3.5 rounded-xl bg-ink/5 border border-line flex items-center justify-between mb-2">
                 <div>
-                  <span className="text-[11px] text-[#abb3bf] uppercase tracking-wider block">
+                  <span className="text-[11px] text-muted uppercase tracking-wider block">
                     Código de envío
                   </span>
-                  <span className="font-mono text-xl text-white font-bold tracking-wider">
+                  <span className="font-mono text-xl text-ink font-bold tracking-wider">
                     {siteConfig.bizumCode}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(siteConfig.bizumCode, 'bizum')}
-                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#D42365]"
+                  className="p-2 rounded-lg bg-ink/10 hover:bg-ink/15 text-ink transition-colors focus:outline-none focus:ring-2 focus:ring-[#D42365]"
                   aria-label="Copiar código Bizum"
                   title="Copiar código Bizum"
                 >
                   {copiedBizum ? (
                     <Check className="w-4 h-4 text-emerald-400" />
                   ) : (
-                    <Copy className="w-4 h-4 text-[#abb3bf]" />
+                    <Copy className="w-4 h-4 text-muted" />
                   )}
                 </button>
               </div>
             </div>
 
-            <p className="text-xs text-[#abb3bf]/80 mt-2">
+            <p className="text-xs text-muted/90 mt-2">
               Selecciona &quot;Donar a ONG&quot; o &quot;Causa solidaria&quot; en tu app bancaria e introduce el código.
             </p>
           </div>
 
           {/* TRANSFERENCIA BANCARIA */}
-          <div className="liquid-glass rounded-2xl p-6 flex flex-col justify-between border border-white/10">
+          <div className="liquid-glass rounded-2xl p-6 flex flex-col justify-between border border-line">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white">
+                  <div className="w-10 h-10 rounded-full bg-ink/5 flex items-center justify-center text-ink">
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-white font-medium text-base">Transferencia</h3>
-                    <p className="text-xs text-[#abb3bf]">{siteConfig.bankName}</p>
+                    <h3 className="text-ink font-medium text-base">Transferencia</h3>
+                    <p className="text-xs text-muted">{siteConfig.bankName}</p>
                   </div>
                 </div>
-                <span className="text-xs text-[#abb3bf]/70 px-2 py-0.5 rounded bg-white/5">
+                <span className="text-xs text-muted/80 px-2 py-0.5 rounded bg-ink/5">
                   (mockup)
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between mb-2">
+              <div className="p-3.5 rounded-xl bg-ink/5 border border-line flex items-center justify-between mb-2">
                 <div className="overflow-hidden pr-2">
-                  <span className="text-[11px] text-[#abb3bf] uppercase tracking-wider block">
+                  <span className="text-[11px] text-muted uppercase tracking-wider block">
                     IBAN Cuenta bancaria
                   </span>
-                  <span className="font-mono text-xs sm:text-sm text-white font-semibold tracking-wider truncate block">
+                  <span className="font-mono text-xs sm:text-sm text-ink font-semibold tracking-wider truncate block">
                     {siteConfig.iban}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(siteConfig.iban, 'iban')}
-                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-[#D42365]"
+                  className="p-2 rounded-lg bg-ink/10 hover:bg-ink/15 text-ink transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-[#D42365]"
                   aria-label="Copiar número de cuenta IBAN"
                   title="Copiar número de cuenta IBAN"
                 >
                   {copiedIban ? (
                     <Check className="w-4 h-4 text-emerald-400" />
                   ) : (
-                    <Copy className="w-4 h-4 text-[#abb3bf]" />
+                    <Copy className="w-4 h-4 text-muted" />
                   )}
                 </button>
               </div>
             </div>
 
-            <p className="text-xs text-[#abb3bf]/80 mt-2">
+            <p className="text-xs text-muted/90 mt-2">
               Beneficiario: Rotaract Horizon Pamplona. Concepto: &quot;Donación club&quot; o el nombre del proyecto.
             </p>
           </div>
         </div>
 
         {/* SMALL MUTED NOTE REQUIRED */}
-        <p className="text-xs text-[#abb3bf] italic">
+        <p className="text-xs text-muted italic">
           {siteConfig.noteDonationPending} (mockup editable en /content/site.ts).
         </p>
       </div>

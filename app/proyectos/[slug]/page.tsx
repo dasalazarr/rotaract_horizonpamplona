@@ -41,8 +41,6 @@ export async function generateMetadata({
       images: [
         {
           url: project.cover,
-          width: 1200,
-          height: 630,
           alt: project.name,
         },
       ],
@@ -67,12 +65,12 @@ export default async function ProjectDetailPage({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24 sm:py-16 space-y-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-24 sm:pb-16 space-y-16">
       {/* Back Link */}
       <div>
         <Link
           href="/proyectos"
-          className="inline-flex items-center text-xs uppercase tracking-wider text-[#abb3bf] hover:text-white transition-colors"
+          className="inline-flex items-center text-xs uppercase tracking-wider text-muted hover:text-ink transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
           Volver a Proyectos
@@ -102,18 +100,18 @@ export default async function ProjectDetailPage({
         </div>
 
         {/* Serif H1 */}
-        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-normal text-white leading-tight">
+        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-normal text-ink leading-tight">
           {project.name}
         </h1>
 
         {/* Muted Tagline */}
-        <p className="text-xl sm:text-2xl text-[#abb3bf] font-light leading-relaxed">
+        <p className="text-xl sm:text-2xl text-muted font-light leading-relaxed">
           {project.tagline}
         </p>
       </div>
 
       {/* 21:9 COVER PLACEHOLDER (Aspect Ratio 21/9) */}
-      <div className="relative aspect-[21/9] w-full rounded-3xl overflow-hidden bg-[#0c1822] border border-white/10 shadow-2xl">
+      <div className="relative aspect-[21/9] w-full rounded-3xl overflow-hidden bg-paper-soft border border-line shadow-2xl">
         <Image
           src={project.cover}
           alt={project.name}
@@ -123,7 +121,7 @@ export default async function ProjectDetailPage({
           className="object-cover"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#081621]/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
       </div>
 
       {/* KPI GRID (4 cards):
@@ -134,27 +132,27 @@ export default async function ProjectDetailPage({
           Big Instrument Serif magenta numbers, uppercase micro labels */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* KPI 1: Presupuesto & Barra magenta */}
-        <div className="liquid-glass rounded-2xl p-6 border border-white/10 flex flex-col justify-between">
+        <div className="liquid-glass rounded-2xl p-6 border border-line flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#abb3bf]">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
                 Presupuesto
               </span>
-              <span className="text-[10px] text-[#abb3bf]/60">(mockup)</span>
+              <span className="text-[10px] text-muted/60">(mockup)</span>
             </div>
-            <div className="font-display text-4xl sm:text-5xl font-normal text-[#D42365] leading-none mb-3">
+            <div className="font-display text-4xl sm:text-5xl font-normal text-accent leading-none mb-3">
               {project.indicators.budget}
             </div>
           </div>
           <div>
-            <div className="flex items-center justify-between text-xs text-[#abb3bf] mb-1.5">
+            <div className="flex items-center justify-between text-xs text-muted mb-1.5">
               <span>Ejecución del fondo</span>
-              <span className="font-mono text-white font-medium">{project.indicators.budgetExecutedPct}%</span>
+              <span className="font-mono text-ink font-medium">{project.indicators.budgetExecutedPct}%</span>
             </div>
             {/* Magenta Progress Bar */}
-            <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className="w-full h-2 rounded-full bg-ink/10 overflow-hidden">
               <div
-                className="h-full bg-[#D42365] rounded-full transition-all duration-500"
+                className="h-full bg-accent rounded-full transition-all duration-500"
                 style={{ width: `${project.indicators.budgetExecutedPct}%` }}
                 role="progressbar"
                 aria-valuenow={project.indicators.budgetExecutedPct}
@@ -166,55 +164,55 @@ export default async function ProjectDetailPage({
         </div>
 
         {/* KPI 2: Porcentaje ejecutado */}
-        <div className="liquid-glass rounded-2xl p-6 border border-white/10 flex flex-col justify-between">
+        <div className="liquid-glass rounded-2xl p-6 border border-line flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#abb3bf]">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
                 Progreso Técnico
               </span>
-              <span className="text-[10px] text-[#abb3bf]/60">(mockup)</span>
+              <span className="text-[10px] text-muted/60">(mockup)</span>
             </div>
-            <div className="font-display text-4xl sm:text-5xl font-normal text-[#D42365] leading-none mb-2">
+            <div className="font-display text-4xl sm:text-5xl font-normal text-accent leading-none mb-2">
               {project.indicators.budgetExecutedPct}%
             </div>
           </div>
-          <p className="text-xs text-[#abb3bf] leading-relaxed">
+          <p className="text-xs text-muted leading-relaxed">
             Hitos planificados cumplidos según cronograma semestral.
           </p>
         </div>
 
         {/* KPI 3: Personas impactadas */}
-        <div className="liquid-glass rounded-2xl p-6 border border-white/10 flex flex-col justify-between">
+        <div className="liquid-glass rounded-2xl p-6 border border-line flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#abb3bf]">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
                 Impacto Directo
               </span>
-              <span className="text-[10px] text-[#abb3bf]/60">(mockup)</span>
+              <span className="text-[10px] text-muted/60">(mockup)</span>
             </div>
-            <div className="font-display text-4xl sm:text-5xl font-normal text-[#D42365] leading-none mb-2">
+            <div className="font-display text-4xl sm:text-5xl font-normal text-accent leading-none mb-2">
               {project.indicators.peopleImpacted}
             </div>
           </div>
-          <p className="text-xs text-[#abb3bf] leading-relaxed">
+          <p className="text-xs text-muted leading-relaxed">
             Beneficiarios directos acompañados en Pamplona.
           </p>
         </div>
 
         {/* KPI 4: Voluntarios */}
-        <div className="liquid-glass rounded-2xl p-6 border border-white/10 flex flex-col justify-between">
+        <div className="liquid-glass rounded-2xl p-6 border border-line flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#abb3bf]">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
                 Voluntarios
               </span>
-              <span className="text-[10px] text-[#abb3bf]/60">(mockup)</span>
+              <span className="text-[10px] text-muted/60">(mockup)</span>
             </div>
-            <div className="font-display text-4xl sm:text-5xl font-normal text-[#D42365] leading-none mb-2">
+            <div className="font-display text-4xl sm:text-5xl font-normal text-accent leading-none mb-2">
               {project.indicators.volunteers}
             </div>
           </div>
-          <p className="text-xs text-[#abb3bf] leading-relaxed">
+          <p className="text-xs text-muted leading-relaxed">
             Jóvenes implicados en comisiones activas.
           </p>
         </div>
@@ -226,14 +224,14 @@ export default async function ProjectDetailPage({
         <div className="lg:col-span-6 space-y-4">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#D42365]" />
-            <span className="text-xs uppercase tracking-widest text-[#D42365] font-semibold">
+            <span className="text-xs uppercase tracking-widest text-accent-deep font-semibold">
               Diagnóstico
             </span>
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-normal text-white">
+          <h2 className="font-display text-3xl sm:text-4xl font-normal text-ink">
             El contexto
           </h2>
-          <div className="text-[#C4CEDC] text-base sm:text-lg leading-relaxed space-y-4 pt-2">
+          <div className="text-ink text-base sm:text-lg leading-relaxed space-y-4 pt-2">
             <p>{project.context}</p>
           </div>
         </div>
@@ -242,17 +240,17 @@ export default async function ProjectDetailPage({
         <div className="lg:col-span-6 space-y-4">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#f472b6]" />
-            <span className="text-xs uppercase tracking-widest text-[#f472b6] font-semibold">
+            <span className="text-xs uppercase tracking-widest text-accent-deep font-semibold">
               Metas
             </span>
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-normal text-white">
+          <h2 className="font-display text-3xl sm:text-4xl font-normal text-ink">
             Objetivos estratégicos
           </h2>
           <ul className="space-y-4 pt-2">
             {project.objectives.map((obj, idx) => (
-              <li key={idx} className="flex items-start gap-3 text-sm sm:text-base text-[#C4CEDC]">
-                <CheckCircle2 className="w-5 h-5 text-[#D42365] shrink-0 mt-0.5" />
+              <li key={idx} className="flex items-start gap-3 text-sm sm:text-base text-ink">
+                <CheckCircle2 className="w-5 h-5 text-accent shrink-0 mt-0.5" />
                 <span className="leading-relaxed">{obj}</span>
               </li>
             ))}
@@ -263,10 +261,10 @@ export default async function ProjectDetailPage({
       {/* 3-IMAGE GALLERY PLACEHOLDERS */}
       <section className="space-y-6 pt-6">
         <div>
-          <span className="text-xs uppercase tracking-widest text-[#D42365] font-semibold block mb-1">
+          <span className="text-xs uppercase tracking-widest text-accent-deep font-semibold block mb-1">
             Registro Visual
           </span>
-          <h3 className="font-display text-2xl sm:text-3xl font-normal text-white">
+          <h3 className="font-display text-2xl sm:text-3xl font-normal text-ink">
             Galería de actividades
           </h3>
         </div>
@@ -275,9 +273,9 @@ export default async function ProjectDetailPage({
           {project.gallery.map((img, idx) => (
             <figure
               key={idx}
-              className="liquid-glass rounded-2xl overflow-hidden border border-white/10 group"
+              className="liquid-glass rounded-2xl overflow-hidden border border-line group"
             >
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0c1822]">
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-paper-soft">
                 <Image
                   src={img.url}
                   alt={img.caption}
@@ -287,7 +285,7 @@ export default async function ProjectDetailPage({
                   referrerPolicy="no-referrer"
                 />
               </div>
-              <figcaption className="p-4 text-xs text-[#abb3bf] leading-snug">
+              <figcaption className="p-4 text-xs text-muted leading-snug">
                 {img.caption}
               </figcaption>
             </figure>

@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { AdmissionForm } from '@/components/AdmissionForm';
-import { MemberMosaic } from '@/components/MemberMosaic';
 
 export const metadata: Metadata = {
   title: 'Socios — Únete a Rotaract Horizon Pamplona',
@@ -77,16 +76,16 @@ export default function SociosPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24 sm:py-20 space-y-24">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-24 sm:pb-20 space-y-24">
       {/* 1. CENTERED HEADER */}
       <header className="text-center max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#D42365] mb-3">
+        <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-deep mb-3">
           <span>Socios</span>
         </div>
-        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-normal text-white leading-tight mb-5">
+        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-normal text-ink leading-tight mb-5">
           Únete a Horizon Pamplona
         </h1>
-        <p className="text-base sm:text-lg text-[#abb3bf] font-normal leading-relaxed">
+        <p className="text-base sm:text-lg text-muted font-normal leading-relaxed">
           Para jóvenes que quieren servir, crecer y liderar proyectos reales en Pamplona. No hace falta experiencia: hace falta ganas.
         </p>
       </header>
@@ -94,29 +93,29 @@ export default function SociosPage() {
       {/* 2. TWO COLUMNS: "QUÉ BUSCAMOS" / "BENEFICIOS" */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
         {/* Qué buscamos */}
-        <div className="liquid-glass rounded-3xl p-8 sm:p-10 border border-white/10">
+        <div className="liquid-glass rounded-3xl p-8 sm:p-10 border border-line">
           <div className="flex items-center gap-3 mb-6">
             <span className="w-2.5 h-2.5 rounded-full bg-[#D42365]" />
-            <h2 className="font-display text-3xl font-normal text-white">
+            <h2 className="font-display text-3xl font-normal text-ink">
               Qué buscamos
             </h2>
           </div>
-          <p className="text-sm text-[#abb3bf] mb-8">
+          <p className="text-sm text-muted mb-8">
             No exigimos un currículum dilatado; buscamos valores compartidos y ganas de construir.
           </p>
 
-          <ul className="divide-y divide-white/10">
+          <ul className="divide-y divide-line">
             {queBuscamosItems.map((item, idx) => (
               <li key={idx} className="py-4 first:pt-0 last:pb-0 flex items-start gap-3.5">
                 {/* Magenta dash marker */}
-                <span className="text-[#D42365] font-bold text-lg leading-none mt-0.5 select-none">
+                <span className="text-accent font-bold text-lg leading-none mt-0.5 select-none">
                   —
                 </span>
                 <div>
-                  <h3 className="text-sm font-semibold text-white mb-0.5">
+                  <h3 className="text-sm font-semibold text-ink mb-0.5">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-[#abb3bf] leading-relaxed">
+                  <p className="text-xs text-muted leading-relaxed">
                     {item.description}
                   </p>
                 </div>
@@ -126,29 +125,29 @@ export default function SociosPage() {
         </div>
 
         {/* Beneficios */}
-        <div className="liquid-glass rounded-3xl p-8 sm:p-10 border border-white/10">
+        <div className="liquid-glass rounded-3xl p-8 sm:p-10 border border-line">
           <div className="flex items-center gap-3 mb-6">
             <span className="w-2.5 h-2.5 rounded-full bg-[#f472b6]" />
-            <h2 className="font-display text-3xl font-normal text-white">
+            <h2 className="font-display text-3xl font-normal text-ink">
               Beneficios
             </h2>
           </div>
-          <p className="text-sm text-[#abb3bf] mb-8">
+          <p className="text-sm text-muted mb-8">
             Una plataforma de crecimiento que te prepara para liderar en tu vida profesional y cívica.
           </p>
 
-          <ul className="divide-y divide-white/10">
+          <ul className="divide-y divide-line">
             {beneficiosItems.map((item, idx) => (
               <li key={idx} className="py-4 first:pt-0 last:pb-0 flex items-start gap-3.5">
                 {/* Magenta dash marker */}
-                <span className="text-[#D42365] font-bold text-lg leading-none mt-0.5 select-none">
+                <span className="text-accent font-bold text-lg leading-none mt-0.5 select-none">
                   —
                 </span>
                 <div>
-                  <h3 className="text-sm font-semibold text-white mb-0.5">
+                  <h3 className="text-sm font-semibold text-ink mb-0.5">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-[#abb3bf] leading-relaxed">
+                  <p className="text-xs text-muted leading-relaxed">
                     {item.description}
                   </p>
                 </div>
@@ -161,10 +160,10 @@ export default function SociosPage() {
       {/* 3. "CÓMO ES EL PROCESO" — 4 STEPS GRID */}
       <section className="space-y-10">
         <div className="text-center max-w-2xl mx-auto">
-          <span className="text-xs uppercase tracking-widest text-[#D42365] font-semibold block mb-2">
+          <span className="text-xs uppercase tracking-widest text-accent-deep font-semibold block mb-2">
             Paso a Paso
           </span>
-          <h2 className="font-display text-3xl sm:text-4xl font-normal text-white">
+          <h2 className="font-display text-3xl sm:text-4xl font-normal text-ink">
             Cómo es el proceso
           </h2>
         </div>
@@ -173,18 +172,18 @@ export default function SociosPage() {
           {procesoSteps.map((step) => (
             <div
               key={step.number}
-              className="liquid-glass rounded-2xl p-6 border border-white/10 flex flex-col justify-between"
+              className="liquid-glass rounded-2xl p-6 border border-line flex flex-col justify-between"
             >
               <div>
                 {/* Big serif magenta number 01–04 */}
-                <span className="font-display text-5xl sm:text-6xl font-normal text-[#D42365] leading-none block mb-4">
+                <span className="font-display text-5xl sm:text-6xl font-normal text-accent leading-none block mb-4">
                   {step.number}
                 </span>
-                <h3 className="font-display text-xl font-normal text-white mb-2">
+                <h3 className="font-display text-xl font-normal text-ink mb-2">
                   {step.title}
                 </h3>
               </div>
-              <p className="text-xs text-[#abb3bf] leading-relaxed mt-2">
+              <p className="text-xs text-muted leading-relaxed mt-2">
                 {step.description}
               </p>
             </div>
@@ -192,17 +191,9 @@ export default function SociosPage() {
         </div>
       </section>
 
-      {/* 4. TWO-COLUMN BLOCK: ADMISSION FORM (LEFT) + MEMBER MOSAIC (RIGHT) */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-        {/* Left: ADMISSION FORM (7 cols) */}
-        <div className="lg:col-span-7">
-          <AdmissionForm />
-        </div>
-
-        {/* Right: MEMBER MOSAIC (5 cols) */}
-        <div className="lg:col-span-5">
-          <MemberMosaic />
-        </div>
+      {/* 4. ADMISSION FORM */}
+      <section className="max-w-2xl mx-auto w-full">
+        <AdmissionForm />
       </section>
     </div>
   );

@@ -11,9 +11,9 @@ const buttonVariants = cva(
         primary: 'btn-primary',
         glass: 'btn-glass',
         outline:
-          'border border-white/20 bg-transparent text-white hover:bg-white/5 hover:border-white/40',
-        ghost: 'text-[#abb3bf] hover:text-white hover:bg-white/5',
-        link: 'text-[#D42365] underline-offset-4 hover:underline p-0 h-auto',
+          'border border-line bg-transparent text-ink hover:bg-ink/5 hover:border-ink/30',
+        ghost: 'text-muted hover:text-ink hover:bg-ink/5',
+        link: 'text-accent-deep underline-offset-4 hover:underline p-0 h-auto',
       },
       size: {
         default: 'h-11 px-6 py-2.5',

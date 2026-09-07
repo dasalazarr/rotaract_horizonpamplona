@@ -65,12 +65,12 @@ export const siteConfig: SiteConfig = {
       label: 'Socios activos', // (mockup)
     },
     horasServicio: {
-      value: 480,
-      label: 'Horas de servicio', // (mockup)
+      value: 4,
+      label: 'Nacionalidades', // (mockup)
     },
     proyectosEnCurso: {
-      value: 3,
-      label: 'Proyectos en curso', // (mockup)
+      value: 1,
+      label: 'Proyecto en desarrollo', // (mockup)
     },
   },
 

@@ -36,7 +36,7 @@ export function ActualidadClient() {
               className={`px-4 py-2 rounded-full text-xs font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D42365] ${
                 isSelected
                   ? 'bg-[#D42365] text-white shadow-md'
-                  : 'liquid-glass text-[#abb3bf] hover:text-white'
+                  : 'liquid-glass text-muted hover:text-ink'
               }`}
             >
               {cat}
@@ -53,7 +53,7 @@ export function ActualidadClient() {
           ))}
         </div>
       ) : (
-        <div className="liquid-glass rounded-2xl p-12 text-center text-[#abb3bf]">
+        <div className="liquid-glass rounded-2xl p-12 text-center text-muted">
           No hay publicaciones en la categoría seleccionada por el momento.
         </div>
       )}

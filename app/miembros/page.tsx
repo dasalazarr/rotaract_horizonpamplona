@@ -54,9 +54,9 @@ export default function MiembrosPage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24 sm:py-24 text-center">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-24 sm:pb-24 text-center">
       {/* Centered layout */}
-      <div className="liquid-glass rounded-3xl p-8 sm:p-14 border border-white/10 relative overflow-hidden shadow-2xl">
+      <div className="liquid-glass rounded-3xl p-8 sm:p-14 border border-line relative overflow-hidden shadow-2xl">
         {/* Subtle decorative glow */}
         <div
           aria-hidden="true"
@@ -64,30 +64,30 @@ export default function MiembrosPage() {
         />
 
         {/* Lock Icon */}
-        <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 text-[#f472b6]">
+        <div className="w-16 h-16 rounded-full bg-ink/5 border border-line flex items-center justify-center mx-auto mb-6 text-accent">
           <Lock className="w-7 h-7" />
         </div>
 
         {/* Eyebrow */}
-        <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#D42365] mb-4">
+        <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-deep mb-4">
           <span>Miembros</span>
         </div>
 
         {/* Serif H2 */}
-        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-normal text-white leading-tight mb-5">
+        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-normal text-ink leading-tight mb-5">
           Un espacio privado para la comunidad
         </h1>
 
         {/* Status pill: Acceso por invitación — próximamente */}
         <div className="mb-8">
-          <Badge variant="glass" className="text-xs px-4 py-1 font-medium text-white/90">
-            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-[#f472b6]" />
+          <Badge variant="glass" className="text-xs px-4 py-1 font-medium text-ink/90">
+            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-accent" />
             Acceso por invitación — próximamente
           </Badge>
         </div>
 
         {/* Short description of what is coming */}
-        <p className="text-base sm:text-lg text-[#abb3bf] max-w-2xl mx-auto leading-relaxed mb-12">
+        <p className="text-base sm:text-lg text-muted max-w-2xl mx-auto leading-relaxed mb-12">
           Estamos construyendo el área privada para socios y colaboradores de Horizon Pamplona. Un entorno digital seguro con acceso exclusivo a eventos, directorio de networking, merchandising oficial y beneficios vinculados a tu apoyo y colaboración continuada.
         </p>
 
@@ -98,16 +98,16 @@ export default function MiembrosPage() {
             return (
               <div
                 key={idx}
-                className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-3.5"
+                className="p-4 rounded-2xl bg-ink/5 border border-line flex items-start gap-3.5"
               >
-                <div className="w-9 h-9 rounded-xl bg-[#D42365]/15 text-[#f472b6] flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-9 h-9 rounded-xl bg-accent-wash text-accent-deep flex items-center justify-center shrink-0 mt-0.5">
                   <Icon className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-white mb-1">
+                  <h4 className="text-sm font-semibold text-ink mb-1">
                     {perk.title}
                   </h4>
-                  <p className="text-xs text-[#abb3bf] leading-relaxed">
+                  <p className="text-xs text-muted leading-relaxed">
                     {perk.desc}
                   </p>
                 </div>

@@ -18,7 +18,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
       {/* 16:10 Cover image container */}
       <Link
         href={`/actualidad/${article.slug}`}
-        className="relative aspect-[16/10] w-full overflow-hidden bg-[#0c1822] block focus:outline-none"
+        className="relative aspect-[16/10] w-full overflow-hidden bg-paper-soft block focus:outline-none"
         tabIndex={-1}
       >
         <Image
@@ -29,7 +29,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#081621] via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent opacity-60" />
         <div className="absolute top-3.5 left-3.5">
           <Badge variant="glass" className="text-xs">
             {article.category}
@@ -40,7 +40,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
       {/* Content */}
       <div className="p-6 flex flex-col flex-1 justify-between">
         <div>
-          <div className="flex items-center gap-3 text-xs text-[#abb3bf] mb-3">
+          <div className="flex items-center gap-3 text-xs text-muted mb-3">
             <time dateTime={article.isoDate}>{article.date}</time>
             <span>·</span>
             <span className="inline-flex items-center">
@@ -49,27 +49,27 @@ export function ArticleCard({ article }: ArticleCardProps) {
             </span>
           </div>
 
-          <Link href={`/actualidad/${article.slug}`} className="block group-hover:text-[#f472b6] transition-colors">
+          <Link href={`/actualidad/${article.slug}`} className="block group-hover:text-accent transition-colors">
             {/* serif-none H3 (Inter/sans) as specified in prompt */}
-            <h3 className="font-sans text-lg font-medium text-white leading-snug line-clamp-2 mb-2.5">
+            <h3 className="font-sans text-lg font-medium text-ink leading-snug line-clamp-2 mb-2.5">
               {article.title}
             </h3>
           </Link>
 
-          <p className="text-sm text-[#abb3bf] line-clamp-2 leading-relaxed">
+          <p className="text-sm text-muted line-clamp-2 leading-relaxed">
             {article.excerpt}
           </p>
         </div>
 
-        <div className="pt-5 mt-4 border-t border-white/5 flex items-center justify-between">
+        <div className="pt-5 mt-4 border-t border-line flex items-center justify-between">
           <Link
             href={`/actualidad/${article.slug}`}
-            className="inline-flex items-center text-sm font-medium text-[#D42365] group-hover:text-[#f472b6] transition-colors"
+            className="inline-flex items-center text-sm font-medium text-accent-deep group-hover:opacity-70 transition-opacity"
           >
             Leer
             <ArrowRight className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:translate-x-1" />
           </Link>
-          <span className="text-xs text-[#abb3bf]/70">{article.author}</span>
+          <span className="text-xs text-muted/80">{article.author}</span>
         </div>
       </div>
     </article>

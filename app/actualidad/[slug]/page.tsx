@@ -43,8 +43,6 @@ export async function generateMetadata({
       images: [
         {
           url: article.cover,
-          width: 1200,
-          height: 630,
           alt: article.title,
         },
       ],
@@ -72,7 +70,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
     '@type': 'Article',
     headline: article.title,
     description: article.excerpt,
-    image: [article.cover],
+    image: [article.cover.startsWith('http') ? article.cover : `https://horizonpamplona.org${article.cover}`],
     datePublished: article.isoDate,
     author: {
       '@type': 'Organization',
@@ -100,12 +98,12 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
 
-      <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24 sm:py-16">
+      <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-24 sm:pb-16">
         {/* Back Link */}
         <div className="max-w-[680px] mx-auto mb-8">
           <Link
             href="/actualidad"
-            className="inline-flex items-center text-xs uppercase tracking-wider text-[#abb3bf] hover:text-white transition-colors"
+            className="inline-flex items-center text-xs uppercase tracking-wider text-muted hover:text-ink transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
             Volver a Actualidad
@@ -120,8 +118,8 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
               <Badge variant="glass" className="text-xs">
                 {article.category}
               </Badge>
-              <span className="text-xs text-[#abb3bf]">·</span>
-              <span className="text-xs text-[#abb3bf] inline-flex items-center">
+              <span className="text-xs text-muted">·</span>
+              <span className="text-xs text-muted inline-flex items-center">
                 <Clock className="w-3 h-3 mr-1" />
                 {article.readingTime}
               </span>
@@ -129,24 +127,24 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
 
             <time
               dateTime={article.isoDate}
-              className="text-xs uppercase tracking-widest text-[#abb3bf] font-medium"
+              className="text-xs uppercase tracking-widest text-muted font-medium"
             >
               {article.date}
             </time>
           </div>
 
           {/* Serif H1 */}
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-normal text-white text-center leading-[1.15] mb-6">
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-normal text-ink text-center leading-[1.15] mb-6">
             {article.title}
           </h1>
 
           {/* Muted Standfirst */}
-          <p className="text-lg sm:text-xl text-[#abb3bf] text-center font-normal leading-relaxed mb-10 pb-8 border-b border-white/10">
+          <p className="text-lg sm:text-xl text-muted text-center font-normal leading-relaxed mb-10 pb-8 border-b border-line">
             {article.excerpt}
           </p>
 
           {/* 16:8 Cover Placeholder (Aspect Ratio 2:1) */}
-          <div className="relative aspect-[16/8] w-full rounded-2xl overflow-hidden bg-[#0c1822] mb-10 border border-white/10 shadow-xl">
+          <div className="relative aspect-[16/8] w-full rounded-2xl overflow-hidden bg-paper-soft mb-10 border border-line shadow-xl">
             <Image
               src={article.cover}
               alt={article.title}
@@ -158,19 +156,19 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
             />
           </div>
 
-          {/* Body paragraphs (17px, relaxed, color #C4CEDC) */}
-          <div className="space-y-6 text-[17px] leading-[1.75] text-[#C4CEDC] font-normal">
+          {/* Body paragraphs (17px, relaxed, ink) */}
+          <div className="space-y-6 text-[17px] leading-[1.75] text-ink font-normal">
             {article.body.paragraphs.map((para, idx) => (
               <p key={idx}>{para}</p>
             ))}
 
             {/* Pull-quote with 2px magenta left border in Instrument Serif */}
             {article.body.blockquote && (
-              <blockquote className="my-10 pl-6 border-l-2 border-[#D42365] py-1">
-                <p className="font-display text-2xl sm:text-3xl text-white font-normal italic leading-snug">
+              <blockquote className="my-10 pl-6 border-l-2 border-accent py-1">
+                <p className="font-display text-2xl sm:text-3xl text-ink font-normal italic leading-snug">
                   &ldquo;{article.body.blockquote}&rdquo;
                 </p>
-                <cite className="block text-xs uppercase tracking-wider text-[#D42365] font-semibold mt-3 not-italic">
+                <cite className="block text-xs uppercase tracking-wider text-accent-deep font-semibold mt-3 not-italic">
                   Rotaract Horizon Pamplona
                 </cite>
               </blockquote>
@@ -178,18 +176,18 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
           </div>
 
           {/* Author signature */}
-          <div className="mt-12 pt-6 border-t border-white/10 flex items-center justify-between text-xs text-[#abb3bf]">
-            <span>Publicado por: <strong className="text-white">{article.author}</strong></span>
+          <div className="mt-12 pt-6 border-t border-line flex items-center justify-between text-xs text-muted">
+            <span>Publicado por: <strong className="text-ink">{article.author}</strong></span>
             <span>Horizon Pamplona · Distrito 2202</span>
           </div>
 
           {/* End CTA row [Dona] + [Únete] */}
-          <div className="mt-14 p-8 rounded-2xl liquid-glass border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="mt-14 p-8 rounded-2xl liquid-glass border border-line flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="font-display text-2xl text-white mb-1">
+              <h3 className="font-display text-2xl text-ink mb-1">
                 ¿Quieres formar parte del cambio?
               </h3>
-              <p className="text-xs text-[#abb3bf]">
+              <p className="text-xs text-muted">
                 Apoya nuestros proyectos comunitarios o súmate como socio voluntario.
               </p>
             </div>

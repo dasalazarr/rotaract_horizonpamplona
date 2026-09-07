@@ -105,7 +105,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-[#081621] text-white min-h-screen flex flex-col selection:bg-[#D42365]/30">
+      <body className="bg-paper text-ink min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

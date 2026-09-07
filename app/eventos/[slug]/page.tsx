@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Clock, MapPin, Users, Mail, QrCode, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Users, Mail, QrCode, CheckCircle2, ExternalLink } from 'lucide-react';
 import { events, getEffectiveEventStatus } from '@/content/events';
 import { Badge } from '@/components/ui/badge';
 
@@ -41,8 +41,6 @@ export async function generateMetadata({
       images: [
         {
           url: event.cover,
-          width: 1200,
-          height: 630,
           alt: event.name,
         },
       ],
@@ -90,7 +88,7 @@ export default async function EventDetailPage({
         addressCountry: 'ES',
       },
     },
-    image: [event.cover],
+    image: [event.cover.startsWith('http') ? event.cover : `https://horizonpamplona.org${event.cover}`],
     organizer: {
       '@type': 'Organization',
       name: 'Rotaract Horizon Pamplona',
@@ -121,12 +119,12 @@ export default async function EventDetailPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24 sm:py-16 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-24 sm:pb-16 space-y-12">
         {/* Back Link */}
         <div>
           <Link
             href="/eventos"
-            className="inline-flex items-center text-xs uppercase tracking-wider text-[#abb3bf] hover:text-white transition-colors"
+            className="inline-flex items-center text-xs uppercase tracking-wider text-muted hover:text-ink transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
             Volver a Eventos
@@ -152,17 +150,17 @@ export default async function EventDetailPage({
           </div>
 
           {/* Serif H1 */}
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-normal text-white leading-tight">
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-normal text-ink leading-tight">
             {event.name}
           </h1>
 
-          <p className="text-lg text-[#abb3bf] font-normal max-w-2xl">
+          <p className="text-lg text-muted font-normal max-w-2xl">
             {event.date} · {event.time} h · {event.place}
           </p>
         </div>
 
         {/* 21:9 OG-OPTIMIZED COVER */}
-        <div className="relative aspect-[21/9] w-full rounded-3xl overflow-hidden bg-[#0c1822] border border-white/10 shadow-2xl">
+        <div className="relative aspect-[21/9] w-full rounded-3xl overflow-hidden bg-paper-soft border border-line shadow-2xl">
           <Image
             src={event.cover}
             alt={event.name}
@@ -172,7 +170,7 @@ export default async function EventDetailPage({
             className="object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#081621]/80 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
         </div>
 
         {/* 2-COL LAYOUT */}
@@ -181,14 +179,14 @@ export default async function EventDetailPage({
           <div className="lg:col-span-8 space-y-12">
             {/* Description */}
             <div className="space-y-4">
-              <h2 className="font-display text-3xl font-normal text-white">
+              <h2 className="font-display text-3xl font-normal text-ink">
                 Sobre este encuentro
               </h2>
-              <p className="text-base sm:text-lg text-[#C4CEDC] leading-relaxed font-normal">
+              <p className="text-base sm:text-lg text-ink leading-relaxed font-normal">
                 {event.description}
               </p>
-              <div className="pt-2 p-4 rounded-xl bg-white/5 border border-white/10 text-xs text-[#abb3bf]">
-                <strong className="text-white block mb-1">Localización detallada:</strong>
+              <div className="pt-2 p-4 rounded-xl bg-ink/5 border border-line text-xs text-muted">
+                <strong className="text-ink block mb-1">Localización detallada:</strong>
                 <span>{event.addressDetails}</span>
               </div>
             </div>
@@ -197,22 +195,22 @@ export default async function EventDetailPage({
             <div className="space-y-6">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#D42365]" />
-                <h3 className="font-display text-2xl sm:text-3xl font-normal text-white">
+                <h3 className="font-display text-2xl sm:text-3xl font-normal text-ink">
                   Programa de la sesión
                 </h3>
               </div>
 
-              <div className="divide-y divide-white/10 border-y border-white/10">
+              <div className="divide-y divide-line border-y border-line">
                 {event.agenda.map((slot, idx) => (
                   <div
                     key={idx}
                     className="py-4 flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6"
                   >
                     {/* Serif magenta time */}
-                    <span className="font-display text-2xl text-[#D42365] font-normal shrink-0 w-24">
+                    <span className="font-display text-2xl text-accent font-normal shrink-0 w-24">
                       {slot.time} h
                     </span>
-                    <p className="text-sm sm:text-base text-white/90 leading-relaxed font-normal">
+                    <p className="text-sm sm:text-base text-ink/90 leading-relaxed font-normal">
                       {slot.item}
                     </p>
                   </div>
@@ -221,42 +219,42 @@ export default async function EventDetailPage({
             </div>
 
             {/* Small muted note: URL estable pensada para QR */}
-            <div className="flex items-center gap-2 text-xs text-[#abb3bf] italic pt-2">
-              <QrCode className="w-4 h-4 text-[#D42365] shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-muted italic pt-2">
+              <QrCode className="w-4 h-4 text-accent shrink-0" />
               <span>URL estable pensada para QR: /eventos/{event.slug}</span>
             </div>
           </div>
 
           {/* RIGHT (4 cols): LIQUID-GLASS DATEBOX */}
           <div className="lg:col-span-4 sticky top-28">
-            <div className="liquid-glass rounded-3xl p-8 border border-white/10 space-y-6 shadow-2xl">
+            <div className="liquid-glass rounded-3xl p-8 border border-line space-y-6 shadow-2xl">
               {/* Giant serif day number */}
-              <div className="text-center pb-6 border-b border-white/10">
-                <span className="font-display text-7xl sm:text-8xl font-normal text-[#D42365] leading-none block">
+              <div className="text-center pb-6 border-b border-line">
+                <span className="font-display text-7xl sm:text-8xl font-normal text-accent leading-none block">
                   {event.dayNumber}
                 </span>
                 {/* Month · time uppercase */}
-                <span className="text-xs font-semibold tracking-widest uppercase text-white block mt-2">
+                <span className="text-xs font-semibold tracking-widest uppercase text-ink block mt-2">
                   {event.monthUpper} · {event.time} H
                 </span>
-                <span className="text-xs text-[#abb3bf] block mt-1">
+                <span className="text-xs text-muted block mt-1">
                   Año {event.year}
                 </span>
               </div>
 
               {/* Place line & status */}
-              <div className="space-y-3 text-xs text-[#abb3bf]">
+              <div className="space-y-3 text-xs text-muted">
                 <div className="flex items-start gap-2.5">
-                  <MapPin className="w-4 h-4 text-[#D42365] shrink-0 mt-0.5" />
+                  <MapPin className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-white block">{event.place}</strong>
-                    <span className="text-[#abb3bf]/80">{event.addressDetails}</span>
+                    <strong className="text-ink block">{event.place}</strong>
+                    <span className="text-muted/80">{event.addressDetails}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                <div className="flex items-center justify-between pt-2 border-t border-line">
                   <span>Aforo estimado:</span>
-                  <span className="text-white font-medium">{event.capacity}</span>
+                  <span className="text-ink font-medium">{event.capacity}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -270,12 +268,23 @@ export default async function EventDetailPage({
                 </div>
               </div>
 
-              {/* [Inscribirme] primary button (mailto stub when registration=email) */}
+              {/* [Inscribirme] primary button: external link when registration=external, mailto stub otherwise */}
               <div className="pt-2">
                 {isPast ? (
-                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center text-xs text-[#abb3bf]">
+                  <div className="p-3.5 rounded-2xl bg-ink/5 border border-line text-center text-xs text-muted">
                     Este evento ya ha finalizado. Consulta nuestros próximos encuentros en la agenda.
                   </div>
+                ) : event.registration === 'external' && event.registrationUrl ? (
+                  <a
+                    href={event.registrationUrl}
+                    id="btn-inscribirme-evento"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary w-full py-3.5 text-sm font-medium flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Inscribirme en la web oficial</span>
+                  </a>
                 ) : (
                   <a
                     href={mailtoHref}
@@ -288,8 +297,10 @@ export default async function EventDetailPage({
                 )}
               </div>
 
-              <p className="text-[11px] text-[#abb3bf] text-center leading-relaxed">
-                Asistencia gratuita sin compromiso. Confirmación sujeta a disponibilidad de aforo.
+              <p className="text-[11px] text-muted text-center leading-relaxed">
+                {event.registration === 'external'
+                  ? 'La inscripción y el pago se gestionan en la web del organizador. Confirmación sujeta a disponibilidad de aforo.'
+                  : 'Asistencia gratuita sin compromiso. Confirmación sujeta a disponibilidad de aforo.'}
               </p>
             </div>
           </div>

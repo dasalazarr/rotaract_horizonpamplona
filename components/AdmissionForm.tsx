@@ -88,19 +88,19 @@ export function AdmissionForm() {
     return (
       <div
         id="admission-success-state"
-        className="liquid-glass rounded-3xl p-8 sm:p-10 border border-emerald-500/30 bg-[#091a24] text-center"
+        className="liquid-glass rounded-3xl p-8 sm:p-10 border border-emerald-500/30 bg-paper-soft text-center"
       >
         <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-5">
           <CheckCircle2 className="w-8 h-8" />
         </div>
-        <h3 className="font-display text-3xl font-normal text-white mb-3">
+        <h3 className="font-display text-3xl font-normal text-ink mb-3">
           ¡Solicitud enviada!
         </h3>
-        <p className="text-base text-[#abb3bf] max-w-md mx-auto mb-6 leading-relaxed">
+        <p className="text-base text-muted max-w-md mx-auto mb-6 leading-relaxed">
           Hemos recibido tu solicitud correctamente. Te contactaremos en menos de 4 días laborales para organizar una breve charla informal y conocer tus inquietudes.
         </p>
-        <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-xs text-[#abb3bf] max-w-sm mx-auto">
-          Revisa tu bandeja de entrada en <strong className="text-white">{formData.email}</strong> (también la carpeta de correo no deseado).
+        <div className="p-4 rounded-xl bg-ink/5 border border-line text-xs text-muted max-w-sm mx-auto">
+          Revisa tu bandeja de entrada en <strong className="text-ink">{formData.email}</strong> (también la carpeta de correo no deseado).
         </div>
         <button
           type="button"
@@ -118,7 +118,7 @@ export function AdmissionForm() {
             });
             formLoadedAtRef.current = Date.now();
           }}
-          className="mt-8 text-xs text-[#f472b6] hover:underline"
+          className="mt-8 text-xs text-accent-deep hover:underline"
         >
           Enviar otra respuesta
         </button>
@@ -130,14 +130,14 @@ export function AdmissionForm() {
     <form
       id="admission-form"
       onSubmit={handleSubmit}
-      className="liquid-glass rounded-3xl p-7 sm:p-9 border border-white/10 space-y-5"
+      className="liquid-glass rounded-3xl p-7 sm:p-9 border border-line space-y-5"
       noValidate
     >
       <div>
-        <h3 className="font-display text-2xl sm:text-3xl font-normal text-white mb-1.5">
+        <h3 className="font-display text-2xl sm:text-3xl font-normal text-ink mb-1.5">
           Formulario de admisión
         </h3>
-        <p className="text-xs text-[#abb3bf]">
+        <p className="text-xs text-muted">
           Los campos marcados con asterisco (*) son obligatorios.
         </p>
       </div>
@@ -145,9 +145,9 @@ export function AdmissionForm() {
       {errorMessage && (
         <div
           role="alert"
-          className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 text-xs flex items-center gap-2.5"
+          className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-700 text-xs flex items-center gap-2.5"
         >
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
           <span>{errorMessage}</span>
         </div>
       )}
@@ -170,7 +170,7 @@ export function AdmissionForm() {
       <div>
         <label
           htmlFor="fullName"
-          className="block text-xs font-medium text-white/90 uppercase tracking-wider mb-1.5"
+          className="block text-xs font-medium text-ink/90 uppercase tracking-wider mb-1.5"
         >
           Nombre completo *
         </label>
@@ -182,7 +182,7 @@ export function AdmissionForm() {
           placeholder="Ej. Martín Arregui Goñi"
           value={formData.fullName}
           onChange={handleChange}
-          className="w-full px-4 py-3 rounded-xl bg-[#081621] border border-white/15 text-white placeholder-[#abb3bf]/50 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
+          className="w-full px-4 py-3 rounded-xl bg-paper-soft border border-line text-ink placeholder-muted/60 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
         />
       </div>
 
@@ -191,7 +191,7 @@ export function AdmissionForm() {
         <div>
           <label
             htmlFor="age"
-            className="block text-xs font-medium text-white/90 uppercase tracking-wider mb-1.5"
+            className="block text-xs font-medium text-ink/90 uppercase tracking-wider mb-1.5"
           >
             Edad (16–40) *
           </label>
@@ -205,14 +205,14 @@ export function AdmissionForm() {
             placeholder="Ej. 24"
             value={formData.age}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl bg-[#081621] border border-white/15 text-white placeholder-[#abb3bf]/50 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-paper-soft border border-line text-ink placeholder-muted/60 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
           />
         </div>
 
         <div>
           <label
             htmlFor="occupation"
-            className="block text-xs font-medium text-white/90 uppercase tracking-wider mb-1.5"
+            className="block text-xs font-medium text-ink/90 uppercase tracking-wider mb-1.5"
           >
             Ocupación *
           </label>
@@ -224,7 +224,7 @@ export function AdmissionForm() {
             placeholder="Estudiante, ingeniero, sanitaria..."
             value={formData.occupation}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl bg-[#081621] border border-white/15 text-white placeholder-[#abb3bf]/50 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-paper-soft border border-line text-ink placeholder-muted/60 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
           />
         </div>
       </div>
@@ -234,7 +234,7 @@ export function AdmissionForm() {
         <div>
           <label
             htmlFor="location"
-            className="block text-xs font-medium text-white/90 uppercase tracking-wider mb-1.5"
+            className="block text-xs font-medium text-ink/90 uppercase tracking-wider mb-1.5"
           >
             Ubicación *
           </label>
@@ -246,14 +246,14 @@ export function AdmissionForm() {
             placeholder="Pamplona, Burlada, Zizur..."
             value={formData.location}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl bg-[#081621] border border-white/15 text-white placeholder-[#abb3bf]/50 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-paper-soft border border-line text-ink placeholder-muted/60 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
           />
         </div>
 
         <div>
           <label
             htmlFor="email"
-            className="block text-xs font-medium text-white/90 uppercase tracking-wider mb-1.5"
+            className="block text-xs font-medium text-ink/90 uppercase tracking-wider mb-1.5"
           >
             Correo electrónico *
           </label>
@@ -265,7 +265,7 @@ export function AdmissionForm() {
             placeholder="tu-correo@ejemplo.com"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl bg-[#081621] border border-white/15 text-white placeholder-[#abb3bf]/50 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-paper-soft border border-line text-ink placeholder-muted/60 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors"
           />
         </div>
       </div>
@@ -274,7 +274,7 @@ export function AdmissionForm() {
       <div>
         <label
           htmlFor="motivation"
-          className="block text-xs font-medium text-white/90 uppercase tracking-wider mb-1.5"
+          className="block text-xs font-medium text-ink/90 uppercase tracking-wider mb-1.5"
         >
           ¿Por qué quieres unirte? *
         </label>
@@ -286,7 +286,7 @@ export function AdmissionForm() {
           placeholder="Cuéntanos tus inquietudes, causas que te motivan o qué esperas aportar al club..."
           value={formData.motivation}
           onChange={handleChange}
-          className="w-full px-4 py-3 rounded-xl bg-[#081621] border border-white/15 text-white placeholder-[#abb3bf]/50 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors resize-y"
+          className="w-full px-4 py-3 rounded-xl bg-paper-soft border border-line text-ink placeholder-muted/60 text-sm focus:outline-none focus:border-[#D42365] focus:ring-1 focus:ring-[#D42365] transition-colors resize-y"
         />
       </div>
 
@@ -300,13 +300,13 @@ export function AdmissionForm() {
             required
             checked={formData.rgpdConsent}
             onChange={handleChange}
-            className="mt-1 h-4 w-4 rounded border-white/20 text-[#D42365] focus:ring-[#D42365] bg-[#081621] cursor-pointer"
+            className="mt-1 h-4 w-4 rounded border-line text-[#D42365] focus:ring-[#D42365] bg-paper-soft cursor-pointer"
           />
-          <span className="text-xs text-[#abb3bf] leading-relaxed">
+          <span className="text-xs text-muted leading-relaxed">
             He leído y acepto la{' '}
             <Link
               href="/legal/privacidad"
-              className="text-[#f472b6] underline hover:text-white transition-colors"
+              className="text-accent-deep underline hover:text-ink transition-colors"
               target="_blank"
             >
               política de privacidad
