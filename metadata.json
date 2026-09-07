@@ -1,0 +1,6 @@
+{
+  "name": "Rotaract Horizon Pamplona",
+  "description": "Sitio web oficial de Rotaract Horizon Pamplona. Jóvenes que transforman su entorno a través del servicio, formación en liderazgo y proyectos con impacto real en Pamplona.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
