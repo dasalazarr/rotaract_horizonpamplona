@@ -2,9 +2,10 @@ import { MetadataRoute } from 'next';
 import { articles } from '@/content/articles';
 import { projects } from '@/content/projects';
 import { events } from '@/content/events';
+import { getSiteUrl } from '@/lib/site-url';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.APP_URL || 'https://horizonpamplona.org';
+  const baseUrl = getSiteUrl();
 
   const staticRoutes = [
     '',

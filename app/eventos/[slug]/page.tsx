@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, MapPin, Users, Mail, QrCode, CheckCircle2, ExternalLink } from 'lucide-react';
 import { events, getEffectiveEventStatus } from '@/content/events';
 import { Badge } from '@/components/ui/badge';
+import { getSiteUrl } from '@/lib/site-url';
 
 interface EventDetailPageProps {
   params: Promise<{
@@ -65,6 +66,7 @@ export default async function EventDetailPage({
   }
 
   const { status, label, isPast } = getEffectiveEventStatus(event);
+  const siteUrl = getSiteUrl();
 
   // Schema.org Event JSON-LD
   const eventJsonLd = {
@@ -88,11 +90,11 @@ export default async function EventDetailPage({
         addressCountry: 'ES',
       },
     },
-    image: [event.cover.startsWith('http') ? event.cover : `https://horizonpamplona.org${event.cover}`],
+    image: [event.cover.startsWith('http') ? event.cover : `${siteUrl}${event.cover}`],
     organizer: {
       '@type': 'Organization',
       name: 'Rotaract Horizon Pamplona',
-      url: 'https://horizonpamplona.org',
+      url: siteUrl,
     },
     offers: {
       '@type': 'Offer',
@@ -101,7 +103,7 @@ export default async function EventDetailPage({
       availability: isPast
         ? 'https://schema.org/SoldOut'
         : 'https://schema.org/InStock',
-      url: `https://horizonpamplona.org/eventos/${event.slug}`,
+      url: `${siteUrl}/eventos/${event.slug}`,
       validFrom: '2026-01-01T00:00:00Z',
     },
   };

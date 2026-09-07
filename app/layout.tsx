@@ -4,6 +4,7 @@ import './globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { siteConfig } from '@/content/site';
+import { getSiteUrl } from '@/lib/site-url';
 
 const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
@@ -21,7 +22,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_URL || 'https://horizonpamplona.org'),
+  metadataBase: new URL(getSiteUrl()),
   title: {
     default: 'Rotaract Horizon Pamplona — Servir. Crecer. Liderar Pamplona.',
     template: '%s | Rotaract Horizon Pamplona',
@@ -75,13 +76,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   // Organization JSON-LD Schema
+  const siteUrl = getSiteUrl();
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'NGO',
     name: siteConfig.name,
     alternateName: siteConfig.shortName,
-    url: 'https://horizonpamplona.org',
-    logo: 'https://horizonpamplona.org/icon.png',
+    url: siteUrl,
+    logo: `${siteUrl}/icon.png`,
     email: siteConfig.email,
     address: {
       '@type': 'PostalAddress',

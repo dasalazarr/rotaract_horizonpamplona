@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Clock, Heart, UserPlus } from 'lucide-react';
 import { articles } from '@/content/articles';
 import { Badge } from '@/components/ui/badge';
+import { getSiteUrl } from '@/lib/site-url';
 
 interface ArticlePageProps {
   params: Promise<{
@@ -65,29 +66,30 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
   }
 
   // Article JSON-LD
+  const siteUrl = getSiteUrl();
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: article.title,
     description: article.excerpt,
-    image: [article.cover.startsWith('http') ? article.cover : `https://horizonpamplona.org${article.cover}`],
+    image: [article.cover.startsWith('http') ? article.cover : `${siteUrl}${article.cover}`],
     datePublished: article.isoDate,
     author: {
       '@type': 'Organization',
       name: article.author || 'Rotaract Horizon Pamplona',
-      url: 'https://horizonpamplona.org',
+      url: siteUrl,
     },
     publisher: {
       '@type': 'Organization',
       name: 'Rotaract Horizon Pamplona',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://horizonpamplona.org/icon.png',
+        url: `${siteUrl}/icon.png`,
       },
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://horizonpamplona.org/actualidad/${article.slug}`,
+      '@id': `${siteUrl}/actualidad/${article.slug}`,
     },
   };
 
