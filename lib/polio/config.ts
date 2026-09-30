@@ -36,7 +36,7 @@ export const polioCampaign = {
   shareText:
     'El 24 de octubre a las 19:30 Pamplona se suma a la lucha contra la polio en la Plaza del Castillo. Apúntate aquí:',
   // Sube la versión si cambias las imágenes: WhatsApp cachea la miniatura por URL.
-  ogVersion: 'v1',
+  ogVersion: 'v2',
 };
 
 /**
