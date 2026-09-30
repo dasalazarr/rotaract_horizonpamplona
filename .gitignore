@@ -5,3 +5,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Datos locales de la campaña polio (solo desarrollo)
+.data/
+*.tsbuildinfo

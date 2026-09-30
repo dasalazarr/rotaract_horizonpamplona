@@ -8,8 +8,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
-        disallow: ['/miembros', '/api/'],
+        // La miniatura de WhatsApp debe poder leerse aunque /api/ esté bloqueado.
+        allow: ['/', '/api/polio/og'],
+        disallow: ['/miembros', '/api/', '/polio/admin', '/polio/baja'],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
