@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useInView, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react';
 import {
-  ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, CalendarPlus, Check, Clock, Copy, Lock, MapPin, Navigation, Plus, Share2,
+  ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, CalendarPlus, Check, Clock, Copy, MapPin, Navigation, Plus, Share2,
 } from 'lucide-react';
 import { BalloonCanvas } from './BalloonCanvas';
 import { PlazaScene } from './PlazaScene';
@@ -326,7 +326,7 @@ export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMo
                 <p className="text-[16px] leading-relaxed text-white/60">
                   {launch
                     ? 'Cada globo rojo representa a un niño que merece crecer sin polio. Con la plaza iluminada en el rojo de End Polio Now, Pamplona recordará que el último tramo depende de todos.'
-                    : 'Pamplona va a hacer visible una lucha que casi hemos ganado. Todavía no podemos contarte más. Una pista: mira hacia arriba.'}
+                    : 'Pamplona va a hacer visible una lucha que casi hemos ganado. Esto es lo que va a pasar en la Plaza del Castillo.'}
                 </p>
               </Reveal>
             </div>
@@ -346,22 +346,15 @@ export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMo
                 <Reveal key={p.time} delay={i * 0.06}>
                   <li className="grid grid-cols-[88px_1fr_auto] items-center gap-6 py-6 sm:grid-cols-[160px_1fr_auto]">
                     <span className="font-display text-[32px] leading-none tabular-nums sm:text-[44px]">{p.time}</span>
-                    {launch || me ? (
-                      <span className="text-[16px] text-white/80 sm:text-[18px]">{p.text}</span>
-                    ) : (
-                      <span className="flex items-center gap-3" aria-label="Se desvelará a quienes se registren">
-                        <span className="h-3 rounded-full bg-white/10" style={{ width: `${[62, 48, 70][i] ?? 55}%` }} />
-                      </span>
-                    )}
+                    <span className="text-[16px] text-white/80 sm:text-[18px]">{p.text}</span>
                     <span className="font-mono text-[12px] text-white/35">0{i + 1}</span>
                   </li>
                 </Reveal>
               ))}
             </ol>
-            {!launch && !me && (
-              <Reveal className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="flex items-center gap-2.5 text-[14px] text-white/55"><Lock className="size-4" /> El programa se desvela primero a quienes suman su globo.</p>
-                <a href="#participa" className="inline-flex items-center gap-2 text-[14px] font-medium text-white hover:underline underline-offset-4">Desbloquear el programa <ArrowRight className="size-4" /></a>
+            {!me && (
+              <Reveal>
+                <a href="#participa" className="mt-6 inline-block text-[14px] text-white/45 underline underline-offset-4 hover:text-white/70">Suma tu globo para que te avisemos si algo cambia.</a>
               </Reveal>
             )}
           </div>
