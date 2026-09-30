@@ -49,7 +49,8 @@
 }
 
 .polio-glow-text {
-  text-shadow: 0 0 40px rgba(255, 60, 60, 0.55), 0 0 90px rgba(228, 38, 47, 0.35);
+  /* Halo corto: la línea va dentro de un contenedor con overflow oculto y un halo largo se recorta en rectángulo. */
+  text-shadow: 0 0 14px rgba(255, 60, 60, 0.45), 0 0 2px rgba(255, 90, 90, 0.4);
 }
 
 /* Aurora roja que respira: la plaza encendiéndose */
@@ -128,4 +129,21 @@ body:has(.polio) { background: #0B0507; }
 .polio h2.text-lg {
   font-family: var(--font-body), system-ui, sans-serif;
   letter-spacing: 0;
+}
+
+/* Fondo fotográfico del hero */
+.polio-kenburns {
+  animation: polio-kenburns 28s ease-in-out infinite alternate;
+  transform-origin: 60% 40%;
+}
+@keyframes polio-kenburns {
+  from { transform: scale(1.04); }
+  to { transform: scale(1.14) translate(-1.5%, 1%); }
+}
+.polio-velo-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 45%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 45%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .polio-kenburns { animation: none; }
 }

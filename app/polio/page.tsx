@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { PolioLanding } from '@/components/polio/PolioLanding';
 import { polioStore } from '@/lib/polio/store';
-import { polioCampaign, type CampaignMode } from '@/lib/polio/config';
+import { HERO_VARIANTS, polioCampaign, polioHero, type CampaignMode, type HeroBackdropVariant } from '@/lib/polio/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +62,18 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 }
 
-export default async function PolioPage() {
+export default async function PolioPage({ searchParams }: Props) {
+  const sp = await searchParams;
   const { mode, count } = await campaignState();
-  return <PolioLanding mode={mode} initialCount={count} />;
+  // ?fondo=blur|duotono|velo permite comparar tratamientos del fondo sin publicar cambios.
+  const requested = typeof sp.fondo === 'string' && (HERO_VARIANTS as readonly string[]).includes(sp.fondo)
+    ? (sp.fondo as HeroBackdropVariant) : null;
+  return (
+    <PolioLanding
+      mode={mode}
+      initialCount={count}
+      backdrop={requested ?? polioHero.variant}
+      showBackdropSwitcher={requested !== null}
+    />
+  );
 }

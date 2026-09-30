@@ -13,7 +13,8 @@ import { BalloonCanvas } from './BalloonCanvas';
 import { Countdown } from './Countdown';
 import { PlazaScene } from './PlazaScene';
 import { RegisterForm, type Registered } from './RegisterForm';
-import { polioCampaign, polioEvent, polioLogos, type CampaignMode } from '@/lib/polio/config';
+import { HeroBackdrop } from './HeroBackdrop';
+import { HERO_VARIANTS, polioCampaign, polioEvent, polioLogos, type CampaignMode, type HeroBackdropVariant } from '@/lib/polio/config';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -124,7 +125,9 @@ function Lockup({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
 
 /* --------------------------------- página --------------------------------- */
 
-export function PolioLanding({ mode, initialCount }: { mode: CampaignMode; initialCount: number }) {
+export function PolioLanding({ mode, initialCount, backdrop, showBackdropSwitcher = false }: {
+  mode: CampaignMode; initialCount: number; backdrop: HeroBackdropVariant; showBackdropSwitcher?: boolean;
+}) {
   const [count, setCount] = useState(initialCount);
   const [me, setMe] = useState<Registered | null>(null);
   const [showBar, setShowBar] = useState(false);
@@ -176,8 +179,8 @@ export function PolioLanding({ mode, initialCount }: { mode: CampaignMode; initi
       <main>
         {/* ------------------------------ HERO ----------------------------- */}
         <section ref={heroRef} className="relative isolate flex min-h-[100svh] items-center overflow-hidden pt-28 pb-20">
-          <div className="polio-aurora absolute inset-0 -z-20" aria-hidden="true" />
-          <BalloonCanvas ambient count={reduce ? 18 : 42} className="absolute inset-0 -z-10 h-full w-full" />
+          <HeroBackdrop variant={backdrop} sectionRef={heroRef} />
+          <BalloonCanvas ambient count={reduce ? 14 : 30} className="absolute inset-0 -z-10 h-full w-full" />
           <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-[#0B0507] to-transparent" aria-hidden="true" />
 
           <motion.div style={{ y: reduce ? 0 : heroY, opacity: reduce ? 1 : heroFade }} className="mx-auto w-full max-w-6xl px-5 sm:px-8">
@@ -504,6 +507,15 @@ export function PolioLanding({ mode, initialCount }: { mode: CampaignMode; initi
           <span className="rounded-full bg-[#E4262F] px-4 py-2.5 text-sm font-semibold">Participar</span>
         </a>
       </motion.div>
+
+      {showBackdropSwitcher && (
+        <div className="fixed bottom-20 left-1/2 z-[70] flex -translate-x-1/2 items-center gap-1.5 rounded-2xl bg-black/75 p-2 text-xs backdrop-blur-md sm:bottom-auto sm:left-auto sm:right-6 sm:top-24 sm:translate-x-0 sm:flex-col sm:items-stretch">
+          <span className="px-2 pt-1 text-white/50">Fondo</span>
+          {HERO_VARIANTS.map((v) => (
+            <a key={v} href={`?fondo=${v}`} className={`rounded-xl px-3 py-1.5 font-medium capitalize ${v === backdrop ? 'bg-[#E4262F] text-white' : 'text-white/75 hover:bg-white/10'}`}>{v}</a>
+          ))}
+        </div>
+      )}
 
       {toastNode}
     </div>
