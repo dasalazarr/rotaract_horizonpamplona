@@ -3,6 +3,7 @@ import { Instrument_Serif, Inter } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { ChromeGate } from '@/components/ChromeGate';
 import { siteConfig } from '@/content/site';
 import { getSiteUrl } from '@/lib/site-url';
 
@@ -108,9 +109,13 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-paper text-ink min-h-screen flex flex-col">
-        <Navbar />
+        <ChromeGate>
+          <Navbar />
+        </ChromeGate>
         <main className="flex-1">{children}</main>
-        <Footer />
+        <ChromeGate>
+          <Footer />
+        </ChromeGate>
       </body>
     </html>
   );

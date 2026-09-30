@@ -82,5 +82,6 @@ export const siteConfig: SiteConfig = {
     { label: 'Proyectos', href: '/proyectos' },
     { label: 'Eventos', href: '/eventos' },
     { label: 'Miembros', href: '/miembros' },
+    { label: 'Polio 2026', href: '/polio' },
   ],
 };

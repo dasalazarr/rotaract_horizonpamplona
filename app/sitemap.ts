@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/proyectos',
     '/eventos',
     '/dona',
+    '/polio',
     '/legal/aviso-legal',
     '/legal/privacidad',
     '/legal/cookies',
