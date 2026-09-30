@@ -47,6 +47,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const image = `/api/polio/og-image?${new URLSearchParams({
     ...(ref && inviter ? { ref } : { m: mode }),
     v: polioCampaign.ogVersion,
+    t: Math.floor(Date.now() / 60000).toString(), // Cache bust every minute
   })}`;
   const url = ref && inviter ? `/polio?ref=${encodeURIComponent(ref)}` : '/polio';
 
