@@ -71,6 +71,6 @@ export const HERO_VARIANTS = ['blur', 'duotono', 'velo'] as const;
 export type HeroBackdropVariant = (typeof HERO_VARIANTS)[number];
 
 export const polioHero: { src: string; variant: HeroBackdropVariant } = {
-  src: '/polio/hero-end-polio-now.jpg',
+  src: '/polio/hero-rotary-end-polio.jpg',
   variant: 'blur',
 };
