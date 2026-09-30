@@ -44,7 +44,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       ? 'La Plaza del Castillo se enciende de rojo. 24 de octubre, 19:30. Suma tu globo.'
       : 'Algo rojo llega a la Plaza del Castillo el 24 de octubre a las 19:30. Suma tu globo.';
   // La URL cambia con la fase y el referido: WhatsApp cachea la miniatura por URL.
-  const image = `/api/polio/og?${new URLSearchParams({
+  const image = `/api/polio/og-image?${new URLSearchParams({
     ...(ref && inviter ? { ref } : { m: mode }),
     v: polioCampaign.ogVersion,
   })}`;
