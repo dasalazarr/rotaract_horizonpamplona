@@ -14,7 +14,7 @@ export function GET() {
     `DTSTART:${stamp(polioEvent.start)}`, `DTEND:${stamp(polioEvent.end)}`,
     `SUMMARY:${polioCampaign.name} · ${polioEvent.place}`,
     `LOCATION:${polioEvent.address.replace(/,/g, '\\,')}`,
-    `DESCRIPTION:La Plaza del Castillo se enciende de rojo y lanzamos globos rojos por la erradicación de la polio. ${url}`,
+    `DESCRIPTION:La Plaza del Castillo se enciende de rojo y lanzamos ${polioEvent.balloonLaunch} globos rojos por la erradicación de la polio. ${url}`,
     `URL:${url}`, 'END:VEVENT', 'END:VCALENDAR',
   ].join('\r\n');
   return new Response(ics, {

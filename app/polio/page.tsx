@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { PolioLanding } from '@/components/polio/PolioLanding';
 import { polioStore } from '@/lib/polio/store';
-import { polioCampaign, type CampaignMode } from '@/lib/polio/config';
+import { polioCampaign, polioEvent, type CampaignMode } from '@/lib/polio/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +41,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     : 'Pamplona contra la Polio 2026 · 24 oct, Plaza del Castillo';
   const description =
     mode === 'lanzamiento' || inviter
-      ? 'La Plaza del Castillo se enciende de rojo. 24 de octubre, 19:30. Suma tu globo.'
+      ? `La Plaza del Castillo se enciende de rojo y lanzamos ${polioEvent.balloonLaunch} globos. 24 de octubre, 19:30. Suma el tuyo.`
       : 'Algo rojo llega a la Plaza del Castillo el 24 de octubre a las 19:30. Suma tu globo.';
   // La URL cambia con la fase y el referido: WhatsApp cachea la miniatura por URL.
   const image = `/api/polio/og-image?${new URLSearchParams({
