@@ -2,42 +2,42 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { AnimatePresence, motion } from 'motion/react';
-import { Check, Loader2 } from 'lucide-react';
+import { ArrowRight, Check, Loader2 } from 'lucide-react';
 import { INTERESTS } from '@/lib/polio/config';
-
-export interface Registered { seq: number; ref: string; nombre: string; count: number }
-
-const ATTR_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'ref'] as const;
-
-/** Guarda UTM y referido de la primera visita para atribuir el registro. */
-function attribution() {
-  const params = new URLSearchParams(window.location.search);
-  const out: Record<string, string> = {};
-  for (const k of ATTR_KEYS) {
-    let v = params.get(k);
-    try { if (v) sessionStorage.setItem(`polio_${k}`, v); else v = sessionStorage.getItem(`polio_${k}`); } catch { /* sin almacenamiento */ }
-    if (v) out[k] = v.slice(0, 60);
-  }
-  return out;
-}
+import { attribution, type Registered } from './shared';
 
 const field =
-  'w-full min-h-[52px] rounded-xl bg-white/[0.06] border border-white/15 px-4 text-[17px] text-white placeholder:text-white/35 ' +
-  'outline-none transition focus:border-[#FF4B4B] focus:bg-white/[0.09] focus:ring-4 focus:ring-[#FF4B4B]/20 aria-[invalid=true]:border-[#FF6B6B]';
+  'peer w-full border-0 border-b border-white/20 bg-transparent px-0 pb-3 pt-7 text-[19px] text-white placeholder-transparent ' +
+  'outline-none transition-colors focus:border-white aria-[invalid=true]:border-[#FF6B6B]';
+const label =
+  'pointer-events-none absolute left-0 top-7 text-[19px] text-white/40 transition-all ' +
+  'peer-focus:top-0 peer-focus:text-[11px] peer-focus:uppercase peer-focus:tracking-[0.18em] peer-focus:text-white/60 ' +
+  'peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-[0.18em] peer-[:not(:placeholder-shown)]:text-white/60';
 
-export function RegisterForm({ onRegistered }: { onRegistered: (r: Registered) => void }) {
+function Step({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
+  return (
+    <fieldset className="grid gap-5 border-t border-white/10 pt-6 sm:grid-cols-[120px_1fr] sm:gap-8">
+      <legend className="contents">
+        <span className="flex items-baseline gap-3 text-[13px] text-white/45 sm:block">
+          <span className="font-mono text-white/70">{n}</span>
+          <span className="sm:mt-1 sm:block">{title}</span>
+        </span>
+      </legend>
+      <div>{children}</div>
+    </fieldset>
+  );
+}
+
+export function RegisterForm({ chosen, onToggle, onRegistered }: {
+  chosen: string[]; onToggle: (id: string) => void; onRegistered: (r: Registered) => void;
+}) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const [chosen, setChosen] = useState<string[]>(['asistir']);
   const loadedAt = useRef(0);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => { loadedAt.current = Date.now(); attribution(); }, []);
-
-  const toggle = (id: string) =>
-    setChosen((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -70,93 +70,80 @@ export function RegisterForm({ onRegistered }: { onRegistered: (r: Registered) =
   }
 
   const err = (name: string) =>
-    errors[name] ? <p id={`${name}-err`} className="mt-2 text-sm text-[#FF8A8A]">{errors[name]}</p> : null;
+    errors[name] ? <p id={`e-${name}-err`} className="mt-2 text-sm text-[#FF8A8A]">{errors[name]}</p> : null;
 
   return (
-    <form ref={formRef} onSubmit={submit} noValidate className="grid gap-6">
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div>
-          <label htmlFor="p-nombre" className="block text-sm font-medium text-white/80 mb-2">Nombre</label>
-          <input id="p-nombre" name="nombre" autoComplete="given-name" maxLength={80} required className={field}
-            aria-invalid={Boolean(errors.nombre)} aria-describedby={errors.nombre ? 'nombre-err' : undefined} />
-          {err('nombre')}
-        </div>
-        <div>
-          <label htmlFor="p-whatsapp" className="block text-sm font-medium text-white/80 mb-2">WhatsApp</label>
-          <input id="p-whatsapp" name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" placeholder="612 345 678" required className={field}
-            aria-invalid={Boolean(errors.whatsapp)} aria-describedby={errors.whatsapp ? 'whatsapp-err' : 'whatsapp-hint'} />
-          {err('whatsapp') ?? <p id="whatsapp-hint" className="mt-2 text-xs text-white/45">Fuera de España, añade el prefijo (p. ej. +33).</p>}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="p-email" className="block text-sm font-medium text-white/80 mb-2">
-          Correo <span className="font-normal text-white/45">(opcional)</span>
-        </label>
-        <input id="p-email" name="email" type="email" autoComplete="email" maxLength={120} className={field}
-          aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'email-err' : undefined} />
-        {err('email')}
-      </div>
-
-      <fieldset>
-        <legend className="block text-sm font-medium text-white/80 mb-3">¿Cómo quieres sumarte?</legend>
-        <div className="flex flex-wrap gap-2.5">
+    <form ref={formRef} onSubmit={submit} noValidate className="grid gap-10">
+      <Step n="01" title="Cómo te sumas">
+        <div className="flex flex-wrap gap-2">
           {INTERESTS.map((i) => {
             const on = chosen.includes(i.id);
             return (
               <button
-                key={i.id} type="button" role="checkbox" aria-checked={on} onClick={() => toggle(i.id)}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[15px] font-medium transition
-                  ${on ? 'border-[#FF4B4B] bg-[#E4262F] text-white shadow-[0_6px_24px_-6px_rgba(228,38,47,0.7)]' : 'border-white/15 bg-white/[0.04] text-white/80 hover:border-white/35'}`}
+                key={i.id} type="button" role="checkbox" aria-checked={on} onClick={() => onToggle(i.id)}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] font-medium transition ${on ? 'border-white bg-white text-black' : 'border-white/20 text-white/75 hover:border-white/50 hover:text-white'}`}
               >
-                <span className={`grid place-items-center size-4 rounded-full border ${on ? 'border-white bg-white text-[#E4262F]' : 'border-white/40'}`}>
-                  {on && <Check className="size-3" strokeWidth={3} />}
-                </span>
+                {on && <Check className="size-3.5" strokeWidth={2.5} />}
                 {i.label}
               </button>
             );
           })}
         </div>
         {err('intereses')}
-      </fieldset>
+      </Step>
+
+      <Step n="02" title="Tus datos">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div className="relative">
+            <input id="e-nombre" name="nombre" placeholder="Nombre" autoComplete="given-name" maxLength={80} required className={field}
+              aria-invalid={Boolean(errors.nombre)} aria-describedby={errors.nombre ? 'e-nombre-err' : undefined} />
+            <label htmlFor="e-nombre" className={label}>Nombre</label>
+            {err('nombre')}
+          </div>
+          <div className="relative">
+            <input id="e-whatsapp" name="whatsapp" type="tel" inputMode="tel" placeholder="WhatsApp" autoComplete="tel" required className={field}
+              aria-invalid={Boolean(errors.whatsapp)} aria-describedby={errors.whatsapp ? 'e-whatsapp-err' : 'e-whatsapp-hint'} />
+            <label htmlFor="e-whatsapp" className={label}>WhatsApp</label>
+            {err('whatsapp') ?? <p id="e-whatsapp-hint" className="mt-2 text-xs text-white/40">Fuera de España, añade el prefijo (+33).</p>}
+          </div>
+          <div className="relative sm:col-span-2">
+            <input id="e-email" name="email" type="email" placeholder="Correo" autoComplete="email" maxLength={120} className={field}
+              aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'e-email-err' : undefined} />
+            <label htmlFor="e-email" className={label}>Correo <span className="normal-case tracking-normal text-white/30">(opcional)</span></label>
+            {err('email')}
+          </div>
+        </div>
+      </Step>
 
       {/* Honeypot: invisible para personas */}
-      <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
-        <label htmlFor="p-website">No rellenes este campo</label>
-        <input id="p-website" name="website" tabIndex={-1} autoComplete="off" />
+      <div className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+        <label htmlFor="e-website">No rellenes este campo</label>
+        <input id="e-website" name="website" tabIndex={-1} autoComplete="off" />
       </div>
 
-      <div>
-        <label className="flex items-start gap-3 text-[15px] text-white/85 cursor-pointer">
-          <input type="checkbox" name="consent" required className="mt-1 size-5 shrink-0 accent-[#E4262F]"
-            aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? 'consent-err' : undefined} />
+      <Step n="03" title="Confirmación">
+        <label className="flex cursor-pointer items-start gap-3 text-[15px] leading-relaxed text-white/80">
+          <input type="checkbox" name="consent" required className="mt-1 size-[18px] shrink-0 accent-white"
+            aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? 'e-consent-err' : undefined} />
           <span>Acepto que Rotary Club Pamplona trate mis datos para informarme de esta campaña por WhatsApp y correo. Puedo darme de baja cuando quiera.</span>
         </label>
         {err('consent')}
+        <p className="mt-4 text-xs leading-relaxed text-white/40">
+          Responsable: Rotary Club Pamplona. Finalidad: informarte de la campaña contra la polio 2026. Legitimación: tu consentimiento.
+          No cedemos tus datos. Más información en la{' '}
+          <Link href="/polio/privacidad" className="underline underline-offset-2 hover:text-white">política de privacidad</Link>.
+        </p>
+      </Step>
+
+      <div className="flex flex-col gap-4 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
+        <p role="alert" className="text-[15px] text-[#FF8A8A] sm:order-2">{message}</p>
+        <button
+          type="submit" disabled={sending}
+          className="group inline-flex h-14 items-center justify-center gap-3 rounded-full bg-white px-8 text-[16px] font-medium text-black transition hover:bg-[#F2F2F2] active:scale-[0.99] disabled:opacity-60"
+        >
+          {sending ? <><Loader2 className="size-5 animate-spin" /> Soltando tu globo…</> : <>Sumar mi globo <ArrowRight className="size-4 transition group-hover:translate-x-0.5" /></>}
+        </button>
       </div>
-
-      <p className="text-xs leading-relaxed text-white/45">
-        Responsable: Rotary Club Pamplona. Finalidad: informarte de la campaña contra la polio 2026. Legitimación: tu consentimiento.
-        No cedemos tus datos. Derechos de acceso, rectificación, supresión y otros en la{' '}
-        <Link href="/polio/privacidad" className="underline underline-offset-2 hover:text-white">política de privacidad</Link>.
-      </p>
-
-      <button
-        type="submit" disabled={sending}
-        className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-[#E4262F] px-8 py-4 text-[17px] font-semibold text-white
-          shadow-[0_10px_40px_-10px_rgba(228,38,47,0.9)] transition hover:bg-[#F0333C] active:scale-[0.99] disabled:opacity-70"
-      >
-        <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-        {sending ? <><Loader2 className="size-5 animate-spin" /> Soltando tu globo…</> : 'Quiero sumar mi globo'}
-      </button>
-
-      <AnimatePresence>
-        {message && (
-          <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} role="alert" className="text-[15px] text-[#FF8A8A]">
-            {message}
-          </motion.p>
-        )}
-      </AnimatePresence>
     </form>
   );
 }

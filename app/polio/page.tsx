@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { PolioLanding } from '@/components/polio/PolioLanding';
 import { polioStore } from '@/lib/polio/store';
-import { HERO_VARIANTS, polioCampaign, polioHero, type CampaignMode, type HeroBackdropVariant } from '@/lib/polio/config';
+import { polioCampaign, type CampaignMode } from '@/lib/polio/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,18 +18,23 @@ async function campaignState(): Promise<{ mode: CampaignMode; count: number }> {
   }
 }
 
+/** Nombre de pila de quien invita (?ref=), solo si su registro sigue activo. */
+async function inviterName(ref: string | null): Promise<string | null> {
+  if (!ref) return null;
+  try {
+    const c = await polioStore().byRef(ref);
+    return c?.estado === 'activo' ? c.nombre.trim().split(/\s+/)[0] : null;
+  } catch { return null; }
+}
+
+const refParam = (v: string | string[] | undefined) => (typeof v === 'string' ? v.slice(0, 12) : null);
+
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const sp = await searchParams;
-  const ref = typeof sp.ref === 'string' ? sp.ref.slice(0, 12) : null;
+  const ref = refParam(sp.ref);
   const { mode } = await campaignState();
 
-  let inviter: string | null = null;
-  if (ref) {
-    try {
-      const c = await polioStore().byRef(ref);
-      if (c?.estado === 'activo') inviter = c.nombre.trim().split(/\s+/)[0];
-    } catch { /* miniatura genérica */ }
-  }
+  const inviter = await inviterName(ref);
 
   const title = inviter
     ? `${inviter} te invita · Pamplona contra la Polio 2026`
@@ -64,16 +69,6 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function PolioPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const { mode, count } = await campaignState();
-  // ?fondo=blur|duotono|velo permite comparar tratamientos del fondo sin publicar cambios.
-  const requested = typeof sp.fondo === 'string' && (HERO_VARIANTS as readonly string[]).includes(sp.fondo)
-    ? (sp.fondo as HeroBackdropVariant) : null;
-  return (
-    <PolioLanding
-      mode={mode}
-      initialCount={count}
-      backdrop={requested ?? polioHero.variant}
-      showBackdropSwitcher={requested !== null}
-    />
-  );
+  const [{ mode, count }, inviter] = await Promise.all([campaignState(), inviterName(refParam(sp.ref))]);
+  return <PolioLanding mode={mode} initialCount={count} inviter={inviter} />;
 }

@@ -3,147 +3,143 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion, useInView, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react';
 import {
-  animate, motion, useInView, useReducedMotion, useScroll, useTransform, type MotionValue,
-} from 'motion/react';
-import {
-  ArrowDown, Building2, CalendarPlus, Copy, HandHeart, Heart, MapPin, Megaphone, Navigation, Share2, Users,
+  ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, CalendarPlus, Check, Clock, Copy, Lock, MapPin, Navigation, Plus, Share2,
 } from 'lucide-react';
 import { BalloonCanvas } from './BalloonCanvas';
-import { Countdown } from './Countdown';
 import { PlazaScene } from './PlazaScene';
-import { RegisterForm, type Registered } from './RegisterForm';
-import { HeroBackdrop } from './HeroBackdrop';
-import { HERO_VARIANTS, polioCampaign, polioEvent, polioLogos, type CampaignMode, type HeroBackdropVariant } from '@/lib/polio/config';
+import { RegisterForm } from './RegisterForm';
+import { CountUp, EASE, Reveal, copyText, shareUrl, useToast, waLink, type Registered } from './shared';
+import { polioCampaign, polioEvent, polioHero, polioLogos, type CampaignMode } from '@/lib/polio/config';
 
-const EASE = [0.16, 1, 0.3, 1] as const;
+const CHAPTERS = [
+  { id: 'polio', n: '01', label: 'La polio' },
+  { id: 'noche', n: '02', label: 'La noche' },
+  { id: 'sumate', n: '03', label: 'Súmate' },
+  { id: 'cielo', n: '04', label: 'El cielo' },
+  { id: 'participa', n: '05', label: 'Registro' },
+] as const;
 
-/* --------------------------------- helpers -------------------------------- */
+const WAYS = [
+  { id: 'asistir', title: 'Ven a la plaza', text: `${polioEvent.dateLabel}, ${polioEvent.timeLabel}. ${polioEvent.place}.`, tag: 'Presencial', photo: '50% 30%' },
+  { id: 'voluntariado', title: 'Hazte voluntario', text: 'Montaje, globos y difusión. Te contamos cómo ayudar.', tag: 'Equipo', photo: '20% 60%' },
+  { id: 'donar', title: 'Dona', text: 'Cada euro de Rotary para la polio se multiplica con sus aliados.', tag: 'End Polio Now', photo: null },
+  { id: 'difundir', title: 'Difunde', text: 'Un mensaje en tu grupo de WhatsApp puede sumar diez globos.', tag: 'Online', photo: '80% 40%' },
+  { id: 'patrocinar', title: 'Patrocina', text: 'Empresas de Pamplona junto a una causa global.', tag: 'Empresas', photo: null },
+] as const;
 
-function shareUrl(ref?: string) {
-  const u = new URL('/polio', window.location.origin);
-  u.searchParams.set('utm_source', 'whatsapp');
-  u.searchParams.set('utm_medium', ref ? 'referral' : 'share');
-  u.searchParams.set('utm_campaign', 'polio2026');
-  if (ref) u.searchParams.set('ref', ref);
-  return u.toString();
-}
-const waLink = (url: string) => `https://wa.me/?text=${encodeURIComponent(`${polioCampaign.shareText} ${url}`)}`;
+const FAQ = [
+  ['¿Hay riesgo de polio en España?', 'España está libre de polio, pero mientras el virus circule en algún país puede volver a viajar. Mantener la vacunación es la mejor protección: consulta el calendario vacunal con tu centro de salud.'],
+  ['¿Qué haréis con mis datos?', 'Solo los usamos para informarte de esta campaña. No los cedemos ni los vendemos. Cada mensaje incluye cómo darte de baja.'],
+  ['¿A dónde va el dinero que done?', 'Las donaciones en línea van directamente a la Fundación Rotaria para el programa PolioPlus, a través de End Polio Now.'],
+  ['¿Tengo que ser socio de Rotary?', 'No. La campaña está abierta a todo el mundo, de cualquier edad.'],
+  ['¿Qué pasa si llueve?', 'Si cambia algo, avisaremos por WhatsApp a las personas registradas.'],
+] as const;
 
-function useToast() {
-  const [msg, setMsg] = useState('');
+/* --------------------------------- hooks ---------------------------------- */
+
+function useCountdown(target: string) {
+  const t = Date.parse(target);
+  const [ms, setMs] = useState<number | null>(null);
   useEffect(() => {
-    if (!msg) return;
-    const t = setTimeout(() => setMsg(''), 2200);
-    return () => clearTimeout(t);
-  }, [msg]);
-  const node = msg ? (
-    <div role="status" className="fixed left-1/2 bottom-24 z-[70] -translate-x-1/2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-[#0B0507] shadow-2xl">
-      {msg}
-    </div>
-  ) : null;
-  return { toast: setMsg, node };
+    let id: ReturnType<typeof setTimeout>;
+    const tick = () => { setMs(Math.max(0, t - Date.now())); id = setTimeout(tick, 1000 - (Date.now() % 1000)); };
+    tick();
+    return () => clearTimeout(id);
+  }, [t]);
+  if (ms === null) return { done: false, d: '--', h: '--', m: '--', s: '--' };
+  const s = Math.floor(ms / 1000);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return { done: ms === 0, d: p(Math.floor(s / 86400)), h: p(Math.floor(s / 3600) % 24), m: p(Math.floor(s / 60) % 60), s: p(s % 60) };
 }
 
-async function copyText(text: string, toast: (m: string) => void) {
-  try { await navigator.clipboard.writeText(text); toast('Enlace copiado'); }
-  catch { window.prompt('Copia este enlace:', text); }
+/** Capítulo visible, para el índice del menú. */
+function useActiveChapter() {
+  const [active, setActive] = useState<string | null>(null);
+  useEffect(() => {
+    const els = CHAPTERS.map((c) => document.getElementById(c.id)).filter(Boolean) as HTMLElement[];
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+  return active;
 }
 
-function Reveal({ children, delay = 0, className = '', y = 24 }: { children: React.ReactNode; delay?: number; className?: string; y?: number }) {
-  const reduce = useReducedMotion();
+/* ------------------------------- primitivas ------------------------------- */
+
+function Kicker({ n, children, className = '' }: { n?: string; children: React.ReactNode; className?: string }) {
   return (
-    <motion.div
-      className={className}
-      initial={reduce ? false : { opacity: 0, y, filter: 'blur(6px)' }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      viewport={{ once: true, margin: '-10% 0px' }}
-      transition={{ duration: 0.9, delay, ease: EASE }}
-    >
+    <p className={`flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.22em] text-white/45 ${className}`}>
+      {n && <span className="font-mono text-white/70">{n}</span>}
+      {n && <span className="h-px w-6 bg-white/25" aria-hidden="true" />}
       {children}
-    </motion.div>
+    </p>
   );
 }
 
-function CountUp({ to, decimals = 0, prefix = '', suffix = '', group = true }: { to: number; decimals?: number; prefix?: string; suffix?: string; group?: boolean }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-15% 0px' });
-  const reduce = useReducedMotion();
-  const fmt = (v: number) => prefix + v.toLocaleString('es-ES', { minimumFractionDigits: decimals, maximumFractionDigits: decimals, useGrouping: group }) + suffix;
-  useEffect(() => {
-    if (!inView || !ref.current) return;
-    if (reduce) { ref.current.textContent = fmt(to); return; }
-    const c = animate(0, to, { duration: 1.8, ease: EASE, onUpdate: (v) => { if (ref.current) ref.current.textContent = fmt(v); } });
-    return () => c.stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inView, to, reduce]);
-  return <span ref={ref}>{fmt(reduce ? to : 0)}</span>;
+function Title({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <h2 className={`pe-sans text-[34px] leading-[1.05] sm:text-[48px] lg:text-[56px] ${className}`}>{children}</h2>;
 }
 
-/** Texto que se ilumina palabra a palabra con el scroll. */
-function ScrollText({ text, accent = [] }: { text: string; accent?: string[] }) {
+function ScrollText({ text, accent }: { text: string; accent: string[] }) {
   const ref = useRef<HTMLParagraphElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 85%', 'end 45%'] });
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 80%', 'end 50%'] });
   const words = text.split(' ');
   return (
-    <p ref={ref} className="font-display text-[34px] leading-[1.12] sm:text-[52px] lg:text-[64px] max-w-5xl">
+    <p ref={ref} className="font-display text-[36px] leading-[1.08] sm:text-[54px] lg:text-[68px] tracking-[-0.02em]">
       {words.map((w, i) => (
-        <Word key={i} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]} accent={accent.includes(w.replace(/[.,]/g, ''))}>
-          {w}
-        </Word>
+        <Word key={i} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]} accent={accent.includes(w.replace(/[.,]/g, ''))}>{w}</Word>
       ))}
     </p>
   );
 }
 function Word({ children, progress, range, accent }: { children: string; progress: MotionValue<number>; range: [number, number]; accent: boolean }) {
   const reduce = useReducedMotion();
-  const opacity = useTransform(progress, range, [0.14, 1]);
+  const opacity = useTransform(progress, range, [0.16, 1]);
   return (
-    <motion.span style={{ opacity: reduce ? 1 : opacity }} className={`inline-block mr-[0.25em] ${accent ? 'italic text-[#FF5A5A]' : 'text-white'}`}>
-      {children}
-    </motion.span>
+    <motion.span style={{ opacity: reduce ? 1 : opacity }} className={`mr-[0.22em] inline-block ${accent ? 'italic text-[#FF4B4B]' : ''}`}>{children}</motion.span>
   );
 }
 
-function Lockup({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
-  const h = size === 'lg' ? 'h-12' : 'h-8';
+function Lockup() {
   return (
-    <span className="inline-flex items-center gap-3 sm:gap-4">
-      {polioLogos.rotaryClub ? (
-        <Image src={polioLogos.rotaryClub} alt="Rotary Club Pamplona" width={200} height={60} className={`${h} w-auto`} />
-      ) : (
-        <span className="leading-tight">
-          <span className={`block font-semibold tracking-tight text-white ${size === 'lg' ? 'text-lg' : 'text-[15px]'}`}>Rotary Club Pamplona</span>
-          {size === 'lg' && <span className="block text-xs text-white/50">Logo oficial pendiente</span>}
-        </span>
-      )}
-      <span className="h-6 w-px bg-white/20" aria-hidden="true" />
-      <Image src={polioLogos.rotaract} alt="Rotaract Horizon Pamplona" width={160} height={67} className={`${h} w-auto brightness-0 invert opacity-90`} />
+    <span className="inline-flex items-center gap-3">
+      {polioLogos.rotaryClub
+        ? <Image src={polioLogos.rotaryClub} alt="Rotary Club Pamplona" width={180} height={54} className="h-7 w-auto" />
+        : <span className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] text-white sm:text-[13px]">Rotary Club Pamplona</span>}
+      <span className="hidden h-4 w-px bg-white/25 sm:block" aria-hidden="true" />
+      <Image src={polioLogos.rotaract} alt="Rotaract Horizon Pamplona" width={120} height={50} className="hidden h-6 w-auto brightness-0 invert opacity-80 sm:block" />
     </span>
   );
 }
 
 /* --------------------------------- página --------------------------------- */
 
-export function PolioLanding({ mode, initialCount, backdrop, showBackdropSwitcher = false }: {
-  mode: CampaignMode; initialCount: number; backdrop: HeroBackdropVariant; showBackdropSwitcher?: boolean;
-}) {
+export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMode; initialCount: number; inviter: string | null }) {
   const [count, setCount] = useState(initialCount);
   const [me, setMe] = useState<Registered | null>(null);
-  const [showBar, setShowBar] = useState(false);
+  const [chosen, setChosen] = useState<string[]>(['asistir']);
+  const [scrolled, setScrolled] = useState(false);
   const { toast, node: toastNode } = useToast();
   const reduce = useReducedMotion();
+  const active = useActiveChapter();
+  const cd = useCountdown(polioEvent.start);
   const heroRef = useRef<HTMLElement>(null);
   const formRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroY = useTransform(heroProgress, [0, 1], [0, 160]);
-  const heroFade = useTransform(heroProgress, [0, 0.8], [1, 0]);
   const formInView = useInView(formRef, { margin: '-20% 0px' });
+  const { scrollYProgress: heroP } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const photoY = useTransform(heroP, [0, 1], ['0%', '14%']);
+  const copyY = useTransform(heroP, [0, 1], [0, -60]);
   const launch = mode === 'lanzamiento';
   const lowCount = count < polioCampaign.counterThreshold;
+  const pct = Math.min(1, count / polioCampaign.goal);
 
   useEffect(() => {
-    const onScroll = () => setShowBar(window.scrollY > window.innerHeight * 0.9);
+    const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     const id = setInterval(() => {
@@ -152,345 +148,335 @@ export function PolioLanding({ mode, initialCount, backdrop, showBackdropSwitche
     return () => { window.removeEventListener('scroll', onScroll); clearInterval(id); };
   }, []);
 
-  const onRegistered = (r: Registered) => {
-    setMe(r);
-    setCount(r.count);
-  };
-
+  const toggle = (id: string) => setChosen((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
+  const onRegistered = (r: Registered) => { setMe(r); setCount(r.count); };
   const myUrl = me ? shareUrl(me.ref) : null;
   const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${polioCampaign.name} · ${polioEvent.place}`)}&dates=20261024T173000Z/20261024T190000Z&location=${encodeURIComponent(polioEvent.address)}`;
 
   return (
-    <div className="polio min-h-screen bg-[#0B0507] text-white selection:bg-[#E4262F]/50">
-      <a href="#participa" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-[#0B0507]">
+    <div className="pe min-h-screen bg-black text-white selection:bg-[#E4262F]/60">
+      <a href="#participa" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-black">
         Ir al registro
       </a>
 
       {/* ------------------------------ NAV ------------------------------ */}
-      <header className="fixed inset-x-0 top-0 z-50 px-4 sm:px-6 pt-4">
-        <nav aria-label="Campaña" className="polio-glass mx-auto flex max-w-6xl items-center justify-between rounded-full py-2.5 pl-5 pr-2.5">
+      <header className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${scrolled ? 'border-b border-white/10 bg-black/80 backdrop-blur-xl' : 'border-b border-transparent'}`}>
+        <nav aria-label="Campaña" className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
           <Link href="/polio" aria-label="Pamplona contra la Polio, inicio"><Lockup /></Link>
-          <a href="#participa" className="hidden sm:inline-flex rounded-full bg-[#E4262F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#F0333C]">
-            Quiero participar
-          </a>
+          <ol className="hidden items-center gap-7 lg:flex">
+            {CHAPTERS.slice(0, 4).map((c) => (
+              <li key={c.id}>
+                <a href={`#${c.id}`} aria-current={active === c.id ? 'location' : undefined}
+                  className={`relative text-[13px] transition-colors ${active === c.id ? 'text-white' : 'text-white/50 hover:text-white'}`}>
+                  {c.label}
+                  <span className={`absolute -bottom-[21px] left-0 h-px bg-white transition-all duration-500 ${active === c.id ? 'w-full' : 'w-0'}`} />
+                </a>
+              </li>
+            ))}
+          </ol>
+          <div className="flex items-center gap-3">
+            <span className="hidden items-center gap-2 rounded-full border border-white/15 px-3.5 py-1.5 font-mono text-[12px] tabular-nums text-white/70 sm:inline-flex" aria-hidden="true">
+              <span className="size-1.5 rounded-full bg-[#FF4B4B]" /> {cd.d}d {cd.h}h {cd.m}m
+            </span>
+            <a href="#participa" className="inline-flex h-9 items-center rounded-full bg-white px-4 text-[13px] font-medium text-black transition hover:bg-white/85">
+              Participar
+            </a>
+          </div>
         </nav>
       </header>
 
       <main>
         {/* ------------------------------ HERO ----------------------------- */}
-        <section ref={heroRef} className="relative isolate flex min-h-[100svh] items-center overflow-hidden pt-28 pb-20">
-          <HeroBackdrop variant={backdrop} sectionRef={heroRef} />
-          <BalloonCanvas ambient count={reduce ? 14 : 30} className="absolute inset-0 -z-10 h-full w-full" />
-          <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-[#0B0507] to-transparent" aria-hidden="true" />
+        <section ref={heroRef} className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden">
+          <motion.div style={{ y: reduce ? 0 : photoY }} className="absolute inset-0 -z-20" aria-hidden="true">
+            <Image src={polioHero.src} alt="" fill priority sizes="100vw"
+              className={`object-cover object-[50%_30%] grayscale-[35%] brightness-[0.62] contrast-[1.08] ${reduce ? '' : 'polio-kenburns'}`} />
+          </motion.div>
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black via-black/55 to-black/30" aria-hidden="true" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/80 via-black/20 to-transparent" aria-hidden="true" />
 
-          <motion.div style={{ y: reduce ? 0 : heroY, opacity: reduce ? 1 : heroFade }} className="mx-auto w-full max-w-6xl px-5 sm:px-8">
-            <motion.p
-              initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE }}
-              className="mb-6 inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 text-[12px] font-medium uppercase tracking-[0.2em] text-[#FFB3B3]"
+          <motion.div style={{ y: reduce ? 0 : copyY }} className="mx-auto w-full max-w-[1400px] px-5 pb-10 pt-32 sm:px-8 lg:px-10 lg:pb-14">
+            <motion.ul
+              initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE }}
+              className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-white/75"
             >
-              <span className="relative flex size-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FF4B4B] opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-[#FF4B4B]" /></span>
-              24 · 10 · 2026 — Día Mundial contra la Polio
-            </motion.p>
+              <li className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-[#FF4B4B]" />Día Mundial contra la Polio</li>
+              <li className="flex items-center gap-1.5"><CalendarDays className="size-3.5 text-white/50" />{polioEvent.dateLabel}</li>
+              <li className="flex items-center gap-1.5"><Clock className="size-3.5 text-white/50" />{polioEvent.timeLabel}</li>
+              <li className="flex items-center gap-1.5"><MapPin className="size-3.5 text-white/50" />{polioEvent.place}</li>
+            </motion.ul>
 
-            <h1 className="font-display text-[54px] leading-[0.95] sm:text-[88px] lg:text-[120px] tracking-[-0.02em] max-w-5xl">
-              {(launch ? ['Pamplona se enciende', 'de rojo.'] : ['Algo rojo llega a la', 'Plaza del Castillo.']).map((line, i) => (
-                <span key={line} className="block overflow-hidden pb-[0.06em]">
-                  <motion.span
-                    className={`block ${i === 1 ? 'italic text-[#FF4B4B] polio-glow-text' : ''}`}
-                    initial={reduce ? false : { y: '105%' }} animate={{ y: '0%' }}
-                    transition={{ duration: 1.1, delay: 0.15 + i * 0.12, ease: EASE }}
-                  >
+            {inviter && (
+              <motion.p initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-[13px] text-white backdrop-blur-md">
+                <span className="grid size-5 place-items-center rounded-full bg-white text-[11px] font-semibold text-black">{inviter[0]}</span>
+                {inviter} te ha invitado a sumarte
+              </motion.p>
+            )}
+
+            <h1 className="mt-6 max-w-5xl font-display text-[56px] leading-[0.92] tracking-[-0.025em] sm:text-[96px] lg:text-[128px]">
+              {(launch ? [<>Pamplona se enciende</>, <>de <em className="text-[#FF4B4B]">rojo.</em></>] : [<>Algo <em className="text-[#FF4B4B]">rojo</em> llega</>, <>a la Plaza del Castillo.</>]).map((line, i) => (
+                <span key={i} className="block overflow-hidden pb-[0.05em]">
+                  <motion.span className="block" initial={reduce ? false : { y: '105%' }} animate={{ y: '0%' }} transition={{ duration: 1.1, delay: 0.1 + i * 0.1, ease: EASE }}>
                     {line}
                   </motion.span>
                 </span>
               ))}
             </h1>
 
-            <Reveal delay={0.5} className="mt-7 max-w-xl">
-              <p className="text-lg sm:text-xl leading-relaxed text-white/70">
-                {launch
-                  ? 'El 24 de octubre a las 19:30 la Plaza del Castillo se ilumina de rojo y lanzamos globos rojos por los niños que aún no están protegidos.'
-                  : 'El 24 de octubre a las 19:30 va a pasar algo en el corazón de Pamplona. Suma tu globo y te lo contamos antes que a nadie.'}
-              </p>
-            </Reveal>
+            <div className="mt-10 grid gap-10 border-t border-white/15 pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
+              <Reveal delay={0.4} y={12}>
+                <p className="max-w-md text-[16px] leading-relaxed text-white/65">
+                  {launch
+                    ? 'La plaza se ilumina de rojo y soltamos globos por los niños que aún no están protegidos.'
+                    : 'Una noche para hacer visible una lucha que casi hemos ganado. Suma tu globo y te lo contamos antes que a nadie.'}
+                </p>
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <a href="#participa" className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-white pl-5 pr-6 text-[15px] font-medium text-black transition hover:bg-white/85">
+                    <Plus className="size-4" /> Sumar mi globo
+                  </a>
+                  <a href="/polio/evento.ics" className="inline-flex h-12 items-center gap-2.5 rounded-full border border-white/25 px-5 text-[15px] text-white transition hover:border-white/60 hover:bg-white/5">
+                    <CalendarPlus className="size-4" /> Añadir al calendario
+                  </a>
+                </div>
+              </Reveal>
 
-            <Reveal delay={0.65} className="mt-10">
-              <Countdown target={polioEvent.start} doneLabel="La plaza ya brilla en rojo. Gracias, Pamplona." />
-            </Reveal>
-
-            <Reveal delay={0.8} className="mt-10 flex flex-col sm:flex-row gap-3">
-              <a href="#participa" className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-[#E4262F] px-8 py-4 text-[17px] font-semibold text-white shadow-[0_10px_50px_-10px_rgba(228,38,47,0.95)] transition hover:bg-[#F0333C]">
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                Quiero sumar mi globo
-              </a>
-              <a href="/polio/evento.ics" className="polio-glass inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-[16px] font-medium text-white transition hover:bg-white/10">
-                <CalendarPlus className="size-5" /> Añadir al calendario
-              </a>
-            </Reveal>
-
-            <Reveal delay={0.95} className="mt-8">
-              <p className="text-[15px] text-white/55">
-                {lowCount
-                  ? <>Sé de los primeros en sumarte · meta: <strong className="text-white">{polioCampaign.goal} globos</strong></>
-                  : <><strong className="text-white text-lg tabular-nums">{count}</strong> vecinos ya han sumado su globo · meta: {polioCampaign.goal}</>}
-              </p>
-            </Reveal>
+              <Reveal delay={0.55} y={12} className="lg:min-w-[380px]">
+                {cd.done ? (
+                  <p className="font-display text-3xl">La plaza ya brilla en rojo. <em className="text-[#FF4B4B]">Gracias, Pamplona.</em></p>
+                ) : (
+                  <div role="timer" aria-label={`Faltan ${cd.d} días, ${cd.h} horas y ${cd.m} minutos`}>
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">Faltan</p>
+                    <div className="mt-2 flex items-end gap-5 sm:gap-7" aria-hidden="true">
+                      {[[cd.d, 'días'], [cd.h, 'horas'], [cd.m, 'min'], [cd.s, 'seg']].map(([v, l]) => (
+                        <div key={l}>
+                          <p className="pe-sans text-[40px] font-light leading-none tabular-nums sm:text-[52px]">{v}</p>
+                          <p className="mt-2 text-[11px] text-white/45">{l}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Reveal>
+            </div>
           </motion.div>
-
-          <a href="#polio" aria-label="Seguir leyendo" className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/40 hover:text-white">
-            <ArrowDown className={`size-6 ${reduce ? '' : 'animate-bounce'}`} />
-          </a>
         </section>
 
-        {/* ---------------------------- LA POLIO --------------------------- */}
-        <section id="polio" className="relative mx-auto max-w-6xl px-5 sm:px-8 py-28 sm:py-40">
-          <Reveal><p className="polio-eyebrow">La enfermedad</p></Reveal>
-          <ScrollText
-            text="La polio no tiene cura. Ataca sobre todo a niños menores de cinco años y puede dejar parálisis para siempre en cuestión de horas. Pero tiene vacuna. Y gracias a ella, estamos a punto de vencerla."
-            accent={['cura', 'vacuna', 'vencerla']}
-          />
+        {/* Barra de progreso de la campaña, a sangre */}
+        <div className="border-y border-white/10">
+          <div className="mx-auto flex max-w-[1400px] flex-col gap-3 px-5 py-5 text-[13px] sm:flex-row sm:items-center sm:gap-8 sm:px-8 lg:px-10">
+            <p className="shrink-0 text-white/55">
+              {lowCount ? <>Sé de los primeros · meta <span className="text-white">{polioCampaign.goal} globos</span></> : <><span className="tabular-nums text-white">{count}</span> globos de {polioCampaign.goal}</>}
+            </p>
+            <div className="relative h-px flex-1 bg-white/15">
+              <motion.div className="absolute inset-y-0 left-0 bg-white" initial={{ width: 0 }} whileInView={{ width: `${Math.max(pct * 100, 1.5)}%` }} viewport={{ once: true }} transition={{ duration: 1.6, ease: EASE }} />
+            </div>
+            <p className="shrink-0 font-mono text-[12px] text-white/45">{polioCampaign.hashtag}</p>
+          </div>
+        </div>
 
-          <div className="mt-24 sm:mt-32">
-            <Reveal><h2 className="font-display text-4xl sm:text-6xl max-w-3xl">Hemos recorrido más del <span className="italic text-[#FF4B4B] whitespace-nowrap">99 %</span> del camino.</h2></Reveal>
-            <Reveal delay={0.1}><p className="mt-4 max-w-2xl text-lg text-white/60">Pero el último tramo es el más difícil: mientras el virus circule en un solo país, puede volver a viajar a cualquier otro.</p></Reveal>
-            <ProgressBar />
+        {/* ---------------------------- 01 LA POLIO ------------------------- */}
+        <section id="polio" className="mx-auto max-w-[1400px] scroll-mt-16 px-5 py-28 sm:px-8 sm:py-40 lg:px-10">
+          <div className="grid gap-10 lg:grid-cols-12">
+            <div className="lg:col-span-3"><Reveal><Kicker n="01">La enfermedad</Kicker></Reveal></div>
+            <div className="lg:col-span-9">
+              <ScrollText
+                text="La polio no tiene cura. Ataca sobre todo a niños menores de cinco años y puede dejar parálisis para siempre en cuestión de horas. Pero tiene vacuna. Y gracias a ella, estamos a punto de vencerla."
+                accent={['cura', 'vacuna', 'vencerla']}
+              />
+            </div>
           </div>
 
-          <div className="mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-28 grid gap-10 lg:grid-cols-12">
+            <div className="lg:col-span-3"><Reveal><Kicker>El último tramo</Kicker></Reveal></div>
+            <div className="lg:col-span-9">
+              <Reveal><Title className="max-w-3xl">Hemos recorrido más del 99&nbsp;% del camino. <span className="text-white/40">El último tramo es el más difícil.</span></Title></Reveal>
+              <Timeline />
+            </div>
+          </div>
+
+          <dl className="mt-24 grid grid-cols-2 border-t border-white/10 lg:grid-cols-4">
             {[
               { n: <CountUp to={350000} prefix="≈ " />, t: 'niños paralizados al año en 1988, en 125 países.' },
               { n: <CountUp to={2} />, t: 'países donde aún circula el virus salvaje: Pakistán y Afganistán.' },
               { n: <CountUp to={1985} group={false} />, t: 'año en que Rotary se comprometió a erradicarla con PolioPlus.' },
               { n: <CountUp to={0} />, t: 'curas. Solo la vacuna protege, y cuesta céntimos.' },
             ].map((f, i) => (
-              <Reveal key={i} delay={i * 0.08}>
-                <article className="polio-card h-full rounded-3xl p-7">
-                  <p className="font-display text-5xl sm:text-6xl text-[#FF4B4B] tabular-nums">{f.n}</p>
-                  <p className="mt-4 text-[15px] leading-relaxed text-white/65">{f.t}</p>
-                </article>
+              <Reveal key={i} delay={i * 0.06} className={`border-white/10 py-8 pr-6 ${i % 2 ? 'pl-6' : ''} ${i > 0 ? 'lg:border-l lg:pl-6' : ''} ${i % 2 ? 'border-l' : ''} ${i > 1 ? 'border-t lg:border-t-0' : ''}`}>
+                <dt className="font-display text-[44px] leading-none tabular-nums sm:text-[64px]">{f.n}</dt>
+                <dd className="mt-4 max-w-[26ch] text-[14px] leading-relaxed text-white/55">{f.t}</dd>
               </Reveal>
             ))}
-          </div>
-          <p className="mt-6 text-xs text-white/40">
+          </dl>
+          <p className="mt-4 text-[12px] text-white/35">
             Fuentes: <a className="underline underline-offset-2 hover:text-white" href={polioCampaign.gpeiUrl} target="_blank" rel="noopener noreferrer">GPEI</a> y{' '}
             <a className="underline underline-offset-2 hover:text-white" href={polioCampaign.endPolioUrl} target="_blank" rel="noopener noreferrer">End Polio Now</a>. Cifras aproximadas, pendientes de validación.
           </p>
         </section>
 
-        {/* --------------------------- LA INICIATIVA ------------------------ */}
-        <section id="iniciativa" className="relative overflow-hidden pt-24 sm:pt-32">
-          <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <Reveal><p className="polio-eyebrow">La iniciativa</p></Reveal>
-            <Reveal delay={0.05}>
-              <h2 className="font-display text-5xl sm:text-7xl lg:text-8xl max-w-4xl leading-[0.98]">
-                {launch ? <>La plaza se enciende <span className="italic text-[#FF4B4B]">de rojo.</span></> : <>¿Qué pasará a las <span className="italic text-[#FF4B4B]">19:30</span>?</>}
-              </h2>
-            </Reveal>
-            <Reveal delay={0.12}>
-              <p className="mt-6 max-w-2xl text-lg sm:text-xl text-white/65">
-                {launch
-                  ? 'Cada globo rojo representa a un niño que merece crecer sin polio. Con la Plaza del Castillo iluminada en el rojo de End Polio Now, Pamplona recordará que el último tramo depende de todos.'
-                  : 'Pamplona va a hacer visible una lucha que casi hemos ganado. Todavía no podemos contarte más. Una pista: mira hacia arriba.'}
-              </p>
-            </Reveal>
-          </div>
+        {/* ---------------------------- 02 LA NOCHE ------------------------- */}
+        <section id="noche" className="scroll-mt-16 border-t border-white/10 py-28 sm:py-36">
+          <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10">
+            <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
+              <div className="lg:col-span-7">
+                <Reveal><Kicker n="02">La noche</Kicker></Reveal>
+                <Reveal delay={0.05}><Title className="mt-6">{launch ? 'La plaza se enciende de rojo.' : '¿Qué pasará a las 19:30?'}</Title></Reveal>
+              </div>
+              <Reveal delay={0.1} className="lg:col-span-5">
+                <p className="text-[16px] leading-relaxed text-white/60">
+                  {launch
+                    ? 'Cada globo rojo representa a un niño que merece crecer sin polio. Con la plaza iluminada en el rojo de End Polio Now, Pamplona recordará que el último tramo depende de todos.'
+                    : 'Pamplona va a hacer visible una lucha que casi hemos ganado. Todavía no podemos contarte más. Una pista: mira hacia arriba.'}
+                </p>
+              </Reveal>
+            </div>
 
-          <div className="relative mt-10">
-            {launch && <BalloonCanvas ambient count={reduce ? 12 : 26} speed={0.8} className="absolute inset-0 h-full w-full" />}
-            <PlazaScene mode={mode} />
-          </div>
+            <Reveal delay={0.1}>
+              <figure className="relative mt-14 overflow-hidden rounded-2xl border border-white/10 bg-[#0B0507]">
+                {launch && <BalloonCanvas ambient count={reduce ? 10 : 22} speed={0.8} className="absolute inset-0 h-full w-full" />}
+                <PlazaScene mode={mode} />
+                <figcaption className="absolute left-5 top-5 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-[12px] text-white/75 backdrop-blur-md">
+                  <MapPin className="size-3.5" /> {polioEvent.place}, {polioEvent.city}
+                </figcaption>
+              </figure>
+            </Reveal>
 
-          <div className="mx-auto max-w-6xl px-5 sm:px-8 pb-24 sm:pb-32 -mt-2">
-            {launch ? (
-              <ol className="grid gap-4 sm:grid-cols-3">
-                {polioEvent.programme.map((p, i) => (
-                  <Reveal key={p.time} delay={i * 0.1} className="h-full">
-                    <li className="polio-card h-full rounded-3xl p-6">
-                      <p className="font-display text-4xl text-[#FF4B4B] tabular-nums">{p.time}</p>
-                      <p className="mt-2 text-white/75">{p.text}</p>
-                    </li>
-                  </Reveal>
-                ))}
-              </ol>
-            ) : (
-              <Reveal>
-                <div className="polio-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl p-6 sm:p-8">
-                  <p className="text-lg text-white/80">Lo revelaremos primero a quienes hayan sumado su globo.</p>
-                  <a href="#participa" className="inline-flex shrink-0 items-center justify-center rounded-full bg-white px-6 py-3 font-semibold text-[#0B0507] transition hover:bg-[#FFE3E3]">Quiero saberlo</a>
-                </div>
+            <ol className="mt-4 divide-y divide-white/10 border-y border-white/10">
+              {polioEvent.programme.map((p, i) => (
+                <Reveal key={p.time} delay={i * 0.06}>
+                  <li className="grid grid-cols-[88px_1fr_auto] items-center gap-6 py-6 sm:grid-cols-[160px_1fr_auto]">
+                    <span className="font-display text-[32px] leading-none tabular-nums sm:text-[44px]">{p.time}</span>
+                    {launch || me ? (
+                      <span className="text-[16px] text-white/80 sm:text-[18px]">{p.text}</span>
+                    ) : (
+                      <span className="flex items-center gap-3" aria-label="Se desvelará a quienes se registren">
+                        <span className="h-3 rounded-full bg-white/10" style={{ width: `${[62, 48, 70][i] ?? 55}%` }} />
+                      </span>
+                    )}
+                    <span className="font-mono text-[12px] text-white/35">0{i + 1}</span>
+                  </li>
+                </Reveal>
+              ))}
+            </ol>
+            {!launch && !me && (
+              <Reveal className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="flex items-center gap-2.5 text-[14px] text-white/55"><Lock className="size-4" /> El programa se desvela primero a quienes suman su globo.</p>
+                <a href="#participa" className="inline-flex items-center gap-2 text-[14px] font-medium text-white hover:underline underline-offset-4">Desbloquear el programa <ArrowRight className="size-4" /></a>
               </Reveal>
             )}
-            <Reveal delay={0.1}>
-              <p className="mt-10 max-w-3xl text-white/55 leading-relaxed">
-                Rotary lidera la erradicación de la polio desde 1985 con el programa PolioPlus, junto a la OMS, UNICEF y otros socios de la Iniciativa Mundial.
-                Rotary Club Pamplona, con el apoyo de Rotaract Horizon Pamplona, se suma al Día Mundial contra la Polio desde el corazón de la ciudad.
-              </p>
-            </Reveal>
           </div>
         </section>
 
-        {/* ----------------------------- EL CIELO --------------------------- */}
-        <section id="cielo" className="relative isolate overflow-hidden border-y border-white/10 bg-gradient-to-b from-[#12070A] via-[#1A080C] to-[#0B0507] py-28 sm:py-36">
-          <BalloonCanvas
-            count={Math.min(count, 240)}
-            highlightLabel={me ? `Tu globo · nº ${me.seq}` : null}
-            speed={0.6}
-            className="absolute inset-0 -z-10 h-full w-full"
-          />
-          <div className="mx-auto max-w-6xl px-5 sm:px-8 text-center">
-            <Reveal><p className="polio-eyebrow justify-center">El cielo de Pamplona</p></Reveal>
+        {/* ---------------------------- 03 SÚMATE --------------------------- */}
+        <Ways chosen={chosen} onToggle={toggle} />
+
+        {/* ---------------------------- 04 EL CIELO ------------------------- */}
+        <section id="cielo" className="relative isolate scroll-mt-16 overflow-hidden border-t border-white/10 py-32 sm:py-44">
+          <BalloonCanvas count={Math.min(count, 240)} highlightLabel={me ? `Tu globo · nº ${me.seq}` : null} speed={0.5} className="absolute inset-0 -z-10 h-full w-full opacity-80" />
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_60%_at_50%_50%,transparent,black)]" aria-hidden="true" />
+          <div className="mx-auto max-w-[1400px] px-5 text-center sm:px-8 lg:px-10">
+            <Reveal><Kicker n="04" className="justify-center">El cielo de Pamplona</Kicker></Reveal>
             <Reveal delay={0.05}>
-              <h2 className="mx-auto font-display text-5xl sm:text-7xl max-w-4xl leading-[0.98]">
-                Cada globo es una persona <span className="italic text-[#FF4B4B]">que se suma.</span>
-              </h2>
+              <p className="mt-10 font-display text-[120px] leading-[0.85] tabular-nums tracking-[-0.04em] sm:text-[200px]">
+                <CountUp to={count} /><span className="text-[0.3em] text-white/35 tracking-normal"> / {polioCampaign.goal}</span>
+              </p>
             </Reveal>
-            <Reveal delay={0.12}>
-              <GoalRing count={count} goal={polioCampaign.goal} />
-            </Reveal>
-            <Reveal delay={0.2}>
-              <p className="mx-auto mt-6 max-w-xl text-white/60">
-                {me ? '¡Ahí está el tuyo! Ahora invita a tres personas y haz que el cielo se llene.' : 'Suma el tuyo y míralo subir. Queremos llenar el cielo antes del 24 de octubre.'}
+            <Reveal delay={0.1}><Title className="mx-auto mt-8 max-w-2xl">Cada globo es una persona que se suma.</Title></Reveal>
+            <Reveal delay={0.15}>
+              <p className="mx-auto mt-5 max-w-md text-[15px] text-white/55">
+                {me ? 'Ahí está el tuyo. Invita a tres personas y haz que el cielo se llene.' : 'Suma el tuyo y míralo subir. Queremos llenar el cielo antes del 24 de octubre.'}
               </p>
             </Reveal>
           </div>
         </section>
 
-        {/* ---------------------------- INVITACIÓN -------------------------- */}
-        <section id="invitacion" className="mx-auto max-w-6xl px-5 sm:px-8 py-28 sm:py-36">
-          <Reveal><p className="polio-eyebrow">La invitación</p></Reveal>
-          <Reveal delay={0.05}><h2 className="font-display text-5xl sm:text-7xl max-w-3xl leading-[0.98]">Te esperamos. <span className="italic text-[#FF4B4B]">Así puedes sumarte.</span></h2></Reveal>
-
-          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {[
-              { icon: MapPin, t: 'Ven a la plaza', d: `${polioEvent.dateLabel}, ${polioEvent.timeLabel}. ${polioEvent.place}.` },
-              { icon: Users, t: 'Hazte voluntario', d: 'Ayúdanos con el montaje, los globos y la difusión.' },
-              { icon: HandHeart, t: 'Dona', d: 'Cada euro de Rotary para la polio se multiplica con sus aliados.', href: polioCampaign.donateUrl },
-              { icon: Megaphone, t: 'Difunde', d: 'Reenvía esta página a tus grupos de WhatsApp.' },
-              { icon: Building2, t: 'Patrocina', d: 'Empresas de Pamplona junto a una causa global.' },
-            ].map((w, i) => (
-              <Reveal key={w.t} delay={i * 0.06}>
-                <article className="polio-card group h-full rounded-3xl p-6 transition duration-500 hover:-translate-y-1 hover:border-[#FF4B4B]/50">
-                  <span className="grid size-12 place-items-center rounded-2xl bg-[#E4262F]/15 text-[#FF6B6B] transition group-hover:bg-[#E4262F] group-hover:text-white">
-                    <w.icon className="size-6" />
-                  </span>
-                  <h3 className="mt-5 text-lg font-semibold">{w.t}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-white/60">{w.d}</p>
-                  {w.href && (
-                    <a href={w.href} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-[15px] font-semibold text-[#FF6B6B] underline-offset-4 hover:underline">Donar en End Polio Now →</a>
-                  )}
-                </article>
-              </Reveal>
-            ))}
-          </div>
-
-          <Reveal delay={0.1}>
-            <div className="polio-ticket mt-8 grid gap-6 rounded-[28px] p-7 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-white/70">Tu cita</p>
-                <p className="mt-2 font-display text-4xl sm:text-6xl leading-none">{polioEvent.dateLabel} · {polioEvent.timeLabel}</p>
-                <p className="mt-3 text-lg text-white/80">{polioEvent.place}, {polioEvent.city}</p>
-              </div>
-              <div className="flex flex-wrap gap-2.5">
-                <a href="/polio/evento.ics" className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 font-semibold text-[#B5121B] transition hover:bg-[#FFE3E3]"><CalendarPlus className="size-5" /> Calendario</a>
-                <a href={gcal} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-white/40 px-5 py-3 font-medium transition hover:bg-white/10">Google Calendar</a>
-                <a href={polioEvent.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-white/40 px-5 py-3 font-medium transition hover:bg-white/10"><Navigation className="size-4" /> Cómo llegar</a>
-              </div>
-            </div>
-          </Reveal>
-        </section>
-
-        {/* ----------------------------- REGISTRO --------------------------- */}
-        <section id="participa" ref={formRef} className="relative isolate overflow-hidden py-28 sm:py-36">
-          <div className="polio-aurora absolute inset-0 -z-10 opacity-60" aria-hidden="true" />
-          <div className="mx-auto grid max-w-6xl gap-12 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-            <div>
-              <Reveal><p className="polio-eyebrow">Regístrate</p></Reveal>
-              <Reveal delay={0.05}><h2 className="font-display text-5xl sm:text-7xl leading-[0.98]">Suma tu globo <span className="italic text-[#FF4B4B]">al cielo de Pamplona.</span></h2></Reveal>
-              <Reveal delay={0.12}>
-                <ul className="mt-8 space-y-3 text-white/70">
-                  <li className="flex gap-3"><Heart className="mt-0.5 size-5 shrink-0 text-[#FF6B6B]" /> Serás de los primeros en conocer la iniciativa.</li>
-                  <li className="flex gap-3"><Heart className="mt-0.5 size-5 shrink-0 text-[#FF6B6B]" /> Pocos mensajes por WhatsApp, solo de esta campaña.</li>
-                  <li className="flex gap-3"><Heart className="mt-0.5 size-5 shrink-0 text-[#FF6B6B]" /> Tu propio enlace para invitar y ver tu globo volar.</li>
-                </ul>
-              </Reveal>
-            </div>
-
-            <Reveal delay={0.1}>
-              <div className="polio-glass-strong rounded-[32px] p-6 sm:p-10">
-                {me && myUrl ? (
-                  <motion.div initial={reduce ? false : { opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, ease: EASE }} className="text-center" tabIndex={-1} ref={(el) => el?.focus()}>
-                    <div className="relative mx-auto h-40 w-28" aria-hidden="true">
-                      <motion.div className="absolute inset-0" initial={reduce ? false : { y: 60, opacity: 0 }} animate={{ y: [60, -6, 0], opacity: 1 }} transition={{ duration: 1.6, ease: EASE }}>
-                        <div className="polio-balloon mx-auto" />
-                      </motion.div>
-                    </div>
-                    <p className="polio-eyebrow justify-center mt-2">Globo nº {me.seq}</p>
-                    <h3 className="font-display text-4xl sm:text-5xl">¡Gracias, {me.nombre}! <span className="italic text-[#FF4B4B]">Tu globo ya vuela.</span></h3>
-                    <p className="mx-auto mt-4 max-w-sm text-white/65">Ayúdanos a llegar a {polioCampaign.goal}: invita a tres personas. Tu enlace muestra tu invitación personal en WhatsApp.</p>
-                    <div className="mt-8 flex flex-col gap-3">
-                      <a href={waLink(myUrl)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-4 text-[17px] font-semibold text-[#062B14] transition hover:brightness-110">
-                        <Share2 className="size-5" /> Invitar por WhatsApp
-                      </a>
-                      <button type="button" onClick={() => copyText(myUrl, toast)} className="polio-glass inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 font-medium transition hover:bg-white/10">
-                        <Copy className="size-4" /> Copiar mi enlace
-                      </button>
-                      <a href="#cielo" className="text-sm text-white/55 underline underline-offset-4 hover:text-white">Ver mi globo en el cielo</a>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <RegisterForm onRegistered={onRegistered} />
+        {/* ---------------------------- 05 REGISTRO ------------------------- */}
+        <section id="participa" ref={formRef} className="scroll-mt-16 border-t border-white/10 py-28 sm:py-36">
+          <div className="mx-auto grid max-w-[1400px] gap-14 px-5 sm:px-8 lg:grid-cols-12 lg:gap-10 lg:px-10">
+            <div className="lg:col-span-5">
+              <div className="lg:sticky lg:top-28">
+                <Reveal><Kicker n="05">Registro</Kicker></Reveal>
+                <Reveal delay={0.05}><Title className="mt-6">Suma tu globo al cielo de Pamplona.</Title></Reveal>
+                {inviter && !me && (
+                  <Reveal delay={0.08}><p className="mt-6 text-[15px] text-white/70">Vienes de parte de <span className="text-white">{inviter}</span>. Tu globo subirá junto al suyo.</p></Reveal>
                 )}
+                <Reveal delay={0.1}>
+                  <ul className="mt-10 divide-y divide-white/10 border-y border-white/10 text-[15px]">
+                    {['Conoce la iniciativa antes que nadie.', 'Pocos mensajes, solo de esta campaña.', 'Tu enlace para invitar y ver tu globo volar.'].map((t, i) => (
+                      <li key={t} className="flex gap-5 py-4 text-white/70"><span className="font-mono text-[12px] leading-6 text-white/35">0{i + 1}</span>{t}</li>
+                    ))}
+                  </ul>
+                </Reveal>
+                <Reveal delay={0.14}>
+                  <p className="mt-8 text-[13px] text-white/45">
+                    Tu globo será el <span className="text-white tabular-nums">nº {count + 1}</span> · {Math.max(0, polioCampaign.goal - count)} para la meta
+                  </p>
+                </Reveal>
               </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ----------------------------- COMPARTE --------------------------- */}
-        <section className="mx-auto max-w-6xl px-5 sm:px-8 py-24 text-center">
-          <Reveal><h2 className="mx-auto font-display text-4xl sm:text-6xl max-w-3xl">Un mensaje en tu grupo puede sumar <span className="italic text-[#FF4B4B]">diez globos.</span></h2></Reveal>
-          <Reveal delay={0.1}>
-            <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
-              <ShareButtons toast={toast} />
             </div>
-            <p className="mt-8 text-lg font-semibold tracking-wide text-[#FF6B6B]">{polioCampaign.hashtag}</p>
-          </Reveal>
+
+            <div className="lg:col-span-7">
+              {me && myUrl ? (
+                <Ticket me={me} url={myUrl} onCopy={() => copyText(myUrl, toast)} gcal={gcal} />
+              ) : (
+                <RegisterForm chosen={chosen} onToggle={toggle} onRegistered={onRegistered} />
+              )}
+            </div>
+          </div>
         </section>
 
         {/* ------------------------------- FAQ ------------------------------ */}
-        <section className="mx-auto max-w-3xl px-5 sm:px-8 pb-28">
-          <Reveal><h2 className="font-display text-4xl sm:text-5xl mb-8">Preguntas frecuentes</h2></Reveal>
-          {[
-            ['¿Hay riesgo de polio en España?', 'España está libre de polio, pero mientras el virus circule en algún país puede volver a viajar. Mantener la vacunación es la mejor protección: consulta el calendario vacunal con tu centro de salud.'],
-            ['¿Qué haréis con mis datos?', 'Solo los usamos para informarte de esta campaña. No los cedemos ni los vendemos. Cada mensaje incluye cómo darte de baja.'],
-            ['¿A dónde va el dinero que done?', 'Las donaciones en línea van directamente a la Fundación Rotaria para el programa PolioPlus, a través de End Polio Now.'],
-            ['¿Tengo que ser socio de Rotary?', 'No. La campaña está abierta a todo el mundo, de cualquier edad.'],
-            ['¿Qué pasa si llueve?', 'Si cambia algo, avisaremos por WhatsApp a las personas registradas.'],
-          ].map(([q, a]) => (
-            <details key={q} className="group border-b border-white/10 py-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-lg font-medium">
-                {q}
-                <span className="grid size-8 shrink-0 place-items-center rounded-full border border-white/20 text-white/70 transition group-open:rotate-45 group-open:border-[#FF4B4B] group-open:text-[#FF4B4B]">+</span>
-              </summary>
-              <p className="mt-3 pr-12 leading-relaxed text-white/60">{a}</p>
-            </details>
-          ))}
+        <section className="border-t border-white/10 py-28">
+          <div className="mx-auto grid max-w-[1400px] gap-10 px-5 sm:px-8 lg:grid-cols-12 lg:px-10">
+            <div className="lg:col-span-5">
+              <Kicker>Preguntas</Kicker>
+              <Title className="mt-6">Lo que suele preguntarse.</Title>
+            </div>
+            <div className="lg:col-span-7">
+              {FAQ.map(([q, a]) => (
+                <details key={q} className="group border-b border-white/10 first:border-t">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-6 text-[17px] text-white/90 transition hover:text-white [&::-webkit-details-marker]:hidden">
+                    {q}
+                    <Plus className="size-4 shrink-0 text-white/50 transition duration-300 group-open:rotate-45 group-open:text-white" />
+                  </summary>
+                  <p className="-mt-2 pb-6 pr-10 text-[15px] leading-relaxed text-white/55">{a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
         </section>
       </main>
 
       {/* ------------------------------ FOOTER ----------------------------- */}
-      <footer className="border-t border-white/10 px-5 sm:px-8 py-14">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-white/40 mb-4">Una iniciativa de</p>
-            <Lockup size="lg" />
-            {polioLogos.endPolioNow ? (
-              <Image src={polioLogos.endPolioNow} alt="End Polio Now" width={180} height={60} className="mt-6 h-10 w-auto" />
-            ) : null}
+      <footer className="overflow-hidden border-t border-white/10">
+        <div className="mx-auto max-w-[1400px] px-5 pt-16 sm:px-8 lg:px-10">
+          <p className="pe-sans select-none whitespace-nowrap text-[25vw] font-semibold leading-[0.8] tracking-[-0.06em] lg:text-[21vw] xl:text-[290px]" aria-hidden="true">
+            24<span className="text-[#E4262F]">·</span>10<span className="text-white/25">·26</span>
+          </p>
+          <div className="mt-14 grid gap-10 border-t border-white/10 pt-10 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <p className="max-w-[30ch] leading-relaxed text-white/55">{polioCampaign.name}. Una noche en rojo para terminar lo que empezamos en 1985.</p>
+            </div>
+            <FooterCol title="El evento" links={[
+              [`${polioEvent.dateLabel} · ${polioEvent.timeLabel}`, '#noche'],
+              ['Añadir al calendario', '/polio/evento.ics'],
+              ['Google Calendar', gcal],
+              ['Cómo llegar', polioEvent.mapsUrl],
+            ]} />
+            <FooterCol title="La campaña" links={CHAPTERS.map((c) => [c.label, `#${c.id}`] as [string, string])} />
+            <FooterCol title="Organiza" links={[
+              ['Rotary Club Pamplona', '/'],
+              ['Rotaract Horizon Pamplona', '/'],
+              ['End Polio Now', polioCampaign.endPolioUrl],
+              ['Donar', polioCampaign.donateUrl],
+            ]} />
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/55">
-            <Link href="/polio/privacidad" className="hover:text-white">Privacidad y aviso legal</Link>
-            <a href={polioCampaign.endPolioUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">End Polio Now</a>
-            <Link href="/" className="hover:text-white">Rotaract Horizon Pamplona</Link>
+          <div className="mt-14 flex flex-col gap-3 border-t border-white/10 py-6 text-[12px] text-white/40 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <span className="rounded border border-white/20 px-1.5 py-0.5 font-mono text-[10px] text-white/60">{polioCampaign.hashtag}</span>
+              <Link href="/polio/privacidad" className="hover:text-white">Privacidad y aviso legal</Link>
+            </div>
+            <p>© {polioCampaign.year} {polioCampaign.organizer} · con {polioCampaign.partner}</p>
           </div>
         </div>
       </footer>
@@ -498,88 +484,193 @@ export function PolioLanding({ mode, initialCount, backdrop, showBackdropSwitche
       {/* Barra fija en móvil */}
       <motion.div
         initial={false}
-        animate={{ y: showBar && !formInView && !me ? 0 : 120 }}
+        animate={{ y: scrolled && !formInView && !me ? 0 : 120 }}
         transition={{ duration: 0.5, ease: EASE }}
         className="fixed inset-x-3 bottom-3 z-[60] sm:hidden"
       >
-        <a href="#participa" className="polio-glass-strong flex items-center justify-between rounded-full py-2 pl-5 pr-2">
-          <span className="text-sm font-medium">24 oct · 19:30 · Plaza del Castillo</span>
-          <span className="rounded-full bg-[#E4262F] px-4 py-2.5 text-sm font-semibold">Participar</span>
+        <a href="#participa" className="flex items-center justify-between rounded-full border border-white/15 bg-black/85 py-2 pl-5 pr-2 backdrop-blur-xl">
+          <span className="font-mono text-[12px] tabular-nums text-white/75">{cd.d}d {cd.h}h {cd.m}m · 19:30</span>
+          <span className="rounded-full bg-white px-4 py-2.5 text-[13px] font-medium text-black">Sumar mi globo</span>
         </a>
       </motion.div>
-
-      {showBackdropSwitcher && (
-        <div className="fixed bottom-20 left-1/2 z-[70] flex -translate-x-1/2 items-center gap-1.5 rounded-2xl bg-black/75 p-2 text-xs backdrop-blur-md sm:bottom-auto sm:left-auto sm:right-6 sm:top-24 sm:translate-x-0 sm:flex-col sm:items-stretch">
-          <span className="px-2 pt-1 text-white/50">Fondo</span>
-          {HERO_VARIANTS.map((v) => (
-            <a key={v} href={`?fondo=${v}`} className={`rounded-xl px-3 py-1.5 font-medium capitalize ${v === backdrop ? 'bg-[#E4262F] text-white' : 'text-white/75 hover:bg-white/10'}`}>{v}</a>
-          ))}
-        </div>
-      )}
 
       {toastNode}
     </div>
   );
 }
 
-function ShareButtons({ toast }: { toast: (m: string) => void }) {
-  return (
-    <>
-      <a href="https://wa.me/" onClick={(e) => { e.currentTarget.href = waLink(shareUrl()); }} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-7 py-4 text-[17px] font-semibold text-[#062B14] transition hover:brightness-110">
-        <Share2 className="size-5" /> Compartir por WhatsApp
-      </a>
-      <button type="button" onClick={() => copyText(shareUrl(), toast)} className="polio-glass inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 font-medium transition hover:bg-white/10">
-        <Copy className="size-4" /> Copiar enlace
-      </button>
-    </>
-  );
-}
+/* ------------------------------- secciones -------------------------------- */
 
-function ProgressBar() {
+function Timeline() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '-20% 0px' });
   const reduce = useReducedMotion();
+  const marks = [
+    { y: '1988', t: '≈ 350.000 casos', at: 0 },
+    { y: '1994', t: 'América, libre de polio', at: 0.16 },
+    { y: '2020', t: 'África, libre del virus salvaje', at: 0.84 },
+    { y: '2026', t: 'El último 1 %', at: 0.99 },
+  ];
   return (
-    <div ref={ref} className="mt-12">
-      <div className="relative h-5 sm:h-6 overflow-hidden rounded-full bg-white/[0.07]">
-        <motion.div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#5A0710] via-[#B5121B] to-[#E4262F]"
-          initial={{ width: reduce ? '99%' : '0%' }}
-          animate={{ width: inView ? '99%' : reduce ? '99%' : '0%' }}
-          transition={{ duration: 2.4, ease: EASE }}
-        />
-        <div className="polio-last-mile absolute inset-y-0 right-0 w-[1%] min-w-[10px] rounded-full bg-[#FF4B4B]" />
+    <div ref={ref} className="mt-14">
+      <div className="relative h-px bg-white/15">
+        <motion.div className="absolute inset-y-0 left-0 bg-white" initial={{ width: reduce ? '99%' : 0 }} animate={{ width: inView || reduce ? '99%' : 0 }} transition={{ duration: 2.2, ease: EASE }} />
+        <span className="polio-last-mile absolute right-0 top-1/2 size-2.5 -translate-y-1/2 translate-x-1/2 rounded-full bg-[#FF4B4B]" />
+        {marks.slice(0, 3).map((m) => (
+          <span key={m.y} className="absolute top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-white" style={{ left: `${m.at * 100}%` }} />
+        ))}
       </div>
-      <div className="mt-3 flex justify-between text-xs sm:text-sm text-white/45">
-        <span>1988 · ≈ 350.000 casos al año</span>
-        <span className="text-[#FF6B6B] font-medium">El último 1&nbsp;%</span>
+      <div className="relative mt-5 hidden h-10 sm:block">
+        {marks.map((m, i) => (
+          <div key={m.y} className={`absolute max-w-[22ch] text-[12px] ${i === marks.length - 1 ? 'right-0 text-right' : m.at > 0.6 ? '-translate-x-full pr-3 text-right' : ''}`} style={i === marks.length - 1 ? undefined : { left: `${m.at * 100}%` }}>
+            <p className={`font-mono ${i === marks.length - 1 ? 'text-[#FF6B6B]' : 'text-white/80'}`}>{m.y}</p>
+            <p className="mt-0.5 text-white/40">{m.t}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 flex justify-between text-[12px] sm:hidden">
+        <span className="font-mono text-white/60">1988 · ≈ 350.000 casos</span>
+        <span className="font-mono text-[#FF6B6B]">El último 1 %</span>
       </div>
     </div>
   );
 }
 
-function GoalRing({ count, goal }: { count: number; goal: number }) {
-  const pct = Math.min(1, count / goal);
-  const R = 88, C = 2 * Math.PI * R;
+function Ways({ chosen, onToggle }: { chosen: string[]; onToggle: (id: string) => void }) {
+  const rail = useRef<HTMLDivElement>(null);
+  const scroll = (dir: 1 | -1) => rail.current?.scrollBy({ left: dir * Math.min(600, rail.current.clientWidth * 0.8), behavior: 'smooth' });
+  const labels = WAYS.filter((w) => chosen.includes(w.id)).map((w) => w.title);
+
+  return (
+    <section id="sumate" className="scroll-mt-16 border-t border-white/10 py-28 sm:py-36">
+      <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10">
+        <div className="flex items-end justify-between gap-6">
+          <div>
+            <Reveal><Kicker n="03">Súmate</Kicker></Reveal>
+            <Reveal delay={0.05}><Title className="mt-6 max-w-xl">Elige cómo quieres estar.</Title></Reveal>
+          </div>
+          <div className="hidden gap-2 sm:flex">
+            <button type="button" onClick={() => scroll(-1)} aria-label="Anterior" className="grid size-10 place-items-center rounded-full border border-white/20 text-white/70 transition hover:border-white hover:text-white"><ArrowLeft className="size-4" /></button>
+            <button type="button" onClick={() => scroll(1)} aria-label="Siguiente" className="grid size-10 place-items-center rounded-full border border-white/20 text-white/70 transition hover:border-white hover:text-white"><ArrowRight className="size-4" /></button>
+          </div>
+        </div>
+      </div>
+
+      <div ref={rail} className="pe-rail mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 pb-2 sm:scroll-px-8 sm:px-8 lg:scroll-px-10 lg:px-10 xl:px-[max(2.5rem,calc((100vw_-_1400px)/2_+_2.5rem))] xl:scroll-px-[max(2.5rem,calc((100vw_-_1400px)/2_+_2.5rem))]">
+        {WAYS.map((w, i) => {
+          const on = chosen.includes(w.id);
+          return (
+            <article key={w.id} className="w-[76vw] max-w-[300px] shrink-0 snap-start">
+              <button
+                type="button" role="checkbox" aria-checked={on} onClick={() => onToggle(w.id)}
+                className={`group relative block aspect-[3/4] w-full overflow-hidden rounded-2xl border text-left transition duration-500 ${on ? 'border-white' : 'border-white/10 hover:border-white/40'}`}
+              >
+                {w.photo ? (
+                  <Image src={polioHero.src} alt="" fill sizes="300px" style={{ objectPosition: w.photo }}
+                    className="object-cover grayscale brightness-[0.55] transition duration-700 group-hover:scale-105 group-hover:grayscale-[40%]" />
+                ) : (
+                  <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_80%_0%,rgba(228,38,47,0.35),transparent_60%),linear-gradient(180deg,#141011,#0A0708)]" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                <span className="absolute left-4 top-4 font-mono text-[12px] text-white/60">0{i + 1}</span>
+                <span className={`absolute right-4 top-4 grid size-7 place-items-center rounded-full border transition ${on ? 'border-white bg-white text-black' : 'border-white/40 text-white/70 group-hover:border-white'}`}>
+                  {on ? <Check className="size-3.5" strokeWidth={2.5} /> : <Plus className="size-3.5" />}
+                </span>
+                <div className="absolute inset-x-4 bottom-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/50">{w.tag}</p>
+                  <h3 className="pe-sans mt-2 text-[24px] leading-tight">{w.title}</h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-white/60">{w.text}</p>
+                </div>
+              </button>
+              {w.id === 'donar' && (
+                <a href={polioCampaign.donateUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-[13px] text-white/60 hover:text-white">
+                  Donar en End Polio Now <ArrowUpRight className="size-3.5" />
+                </a>
+              )}
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="mx-auto mt-8 max-w-[1400px] px-5 sm:px-8 lg:px-10">
+        <div className="flex flex-col gap-4 rounded-2xl border border-white/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[14px] text-white/55" aria-live="polite">
+            {labels.length ? <>Tu selección: <span className="text-white">{labels.join(' · ')}</span></> : 'Toca una tarjeta para elegir cómo sumarte.'}
+          </p>
+          <a href="#participa" className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 text-[14px] font-medium text-black transition hover:bg-white/85">
+            Continuar <ArrowRight className="size-4" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Ticket({ me, url, onCopy, gcal }: { me: Registered; url: string; onCopy: () => void; gcal: string }) {
   const reduce = useReducedMotion();
   return (
-    <div className="relative mx-auto mt-12 size-56 sm:size-64">
-      <svg viewBox="0 0 200 200" className="size-full -rotate-90" aria-hidden="true">
-        <circle cx="100" cy="100" r={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
-        <motion.circle
-          cx="100" cy="100" r={R} fill="none" stroke="#FF4B4B" strokeWidth="6" strokeLinecap="round"
-          strokeDasharray={C}
-          initial={{ strokeDashoffset: reduce ? C * (1 - pct) : C }}
-          whileInView={{ strokeDashoffset: C * (1 - pct) }}
-          viewport={{ once: true }}
-          transition={{ duration: 2, ease: EASE }}
-          style={{ filter: 'drop-shadow(0 0 8px rgba(255,75,75,0.8))' }}
-        />
-      </svg>
-      <div className="absolute inset-0 grid place-content-center text-center">
-        <p className="font-display text-6xl sm:text-7xl tabular-nums leading-none"><CountUp to={count} /></p>
-        <p className="mt-2 text-xs uppercase tracking-[0.2em] text-white/50">de {goal} globos</p>
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE }}
+      tabIndex={-1} ref={(el) => el?.focus()} className="outline-none"
+    >
+      <div className="overflow-hidden rounded-3xl border border-white/15 bg-[#0C0C0C]">
+        <div className="relative p-7 sm:p-10">
+          <div className="absolute inset-0 bg-[radial-gradient(70%_90%_at_100%_0%,rgba(228,38,47,0.35),transparent_60%)]" aria-hidden="true" />
+          <div className="relative flex items-start justify-between gap-6">
+            <Kicker>Pase · {polioCampaign.name}</Kicker>
+            <span className="font-mono text-[12px] text-white/50">#{me.ref}</span>
+          </div>
+          <p className="relative mt-10 font-display text-[88px] leading-[0.85] tabular-nums tracking-[-0.03em] sm:text-[128px]">
+            <span className="text-white/30">nº</span> {String(me.seq).padStart(3, '0')}
+          </p>
+          <p className="relative mt-5 pe-sans text-[26px] leading-tight sm:text-[32px]">Gracias, {me.nombre}. <span className="text-white/45">Tu globo ya vuela.</span></p>
+        </div>
+        <div className="relative grid grid-cols-3 border-t border-dashed border-white/15 text-[13px]">
+          <span className="absolute -left-3 -top-3 size-6 rounded-full bg-black" aria-hidden="true" />
+          <span className="absolute -right-3 -top-3 size-6 rounded-full bg-black" aria-hidden="true" />
+          {[['Fecha', '24 oct 2026'], ['Hora', '19:30 h'], ['Lugar', polioEvent.place]].map(([k, v]) => (
+            <div key={k} className="border-r border-white/10 px-5 py-5 last:border-r-0 sm:px-7">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">{k}</p>
+              <p className="mt-1.5 text-white">{v}</p>
+            </div>
+          ))}
+        </div>
       </div>
+
+      <p className="mt-8 text-[15px] text-white/60">Ayúdanos a llegar a {polioCampaign.goal}: invita a tres personas. Tu enlace muestra tu invitación personal en WhatsApp.</p>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <a href={waLink(url)} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-[15px] font-medium text-black transition hover:bg-white/85">
+          <Share2 className="size-4" /> Invitar por WhatsApp
+        </a>
+        <button type="button" onClick={onCopy} className="inline-flex h-12 items-center gap-2 rounded-full border border-white/25 px-5 text-[15px] transition hover:border-white/60">
+          <Copy className="size-4" /> Copiar mi enlace
+        </button>
+        <a href={gcal} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-full border border-white/25 px-5 text-[15px] transition hover:border-white/60">
+          <CalendarPlus className="size-4" /> Calendario
+        </a>
+        <a href={polioEvent.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-full border border-white/25 px-5 text-[15px] transition hover:border-white/60">
+          <Navigation className="size-4" /> Cómo llegar
+        </a>
+      </div>
+      <a href="#cielo" className="mt-6 inline-block text-[13px] text-white/50 underline underline-offset-4 hover:text-white">Ver mi globo en el cielo</a>
+    </motion.div>
+  );
+}
+
+function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
+  return (
+    <div>
+      <p className="text-[11px] uppercase tracking-[0.2em] text-white/35">{title}</p>
+      <ul className="mt-4 space-y-2.5">
+        {links.map(([l, href]) => (
+          <li key={l}>
+            {href.startsWith('http')
+              ? <a href={href} target="_blank" rel="noopener noreferrer" className="text-white/70 transition hover:text-white">{l}</a>
+              : <a href={href} className="text-white/70 transition hover:text-white">{l}</a>}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
+

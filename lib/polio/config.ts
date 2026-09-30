@@ -63,14 +63,7 @@ export type CampaignMode = 'expectativa' | 'lanzamiento';
 
 export const CONSENT_VERSION = 'v1-2026-09-30';
 
-/**
- * FONDO DEL HERO. `variant` es el tratamiento por defecto.
- * Para comparar: /polio?fondo=blur, ?fondo=duotono o ?fondo=velo (muestra un selector flotante).
- */
-export const HERO_VARIANTS = ['blur', 'duotono', 'velo'] as const;
-export type HeroBackdropVariant = (typeof HERO_VARIANTS)[number];
-
-export const polioHero: { src: string; variant: HeroBackdropVariant } = {
+/** Foto del hero (y de las tarjetas de «Súmate»). */
+export const polioHero = {
   src: '/polio/hero-rotary-end-polio.jpg',
-  variant: 'blur',
 };

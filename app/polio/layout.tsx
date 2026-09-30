@@ -2,7 +2,7 @@ import type { Viewport } from 'next';
 import './polio.css';
 
 export const viewport: Viewport = {
-  themeColor: '#0B0507',
+  themeColor: '#000000',
   colorScheme: 'dark',
 };
 
