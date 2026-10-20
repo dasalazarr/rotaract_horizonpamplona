@@ -4,37 +4,24 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useInView, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react';
-import {
-  ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, CalendarPlus, Check, Clock, Copy, MapPin, Navigation, Plus, Share2,
-} from 'lucide-react';
+import { ArrowUpRight, CalendarDays, Clock, MapPin, Plus } from 'lucide-react';
 import { BalloonCanvas } from './BalloonCanvas';
-import { PlazaScene } from './PlazaScene';
-import { RegisterForm } from './RegisterForm';
-import { CountUp, EASE, Reveal, copyText, shareUrl, useToast, waLink, type Registered } from './shared';
-import { polioCampaign, polioEvent, polioHero, polioLogos, type CampaignMode } from '@/lib/polio/config';
+import { CountUp, EASE, Reveal, shareUrl, waLink } from './shared';
+import { polioCampaign, polioEvent, polioHero, polioLogos, polioPlaza, type CampaignMode } from '@/lib/polio/config';
 
 const CHAPTERS = [
   { id: 'polio', n: '01', label: 'La polio' },
-  { id: 'noche', n: '02', label: 'La noche' },
-  { id: 'sumate', n: '03', label: 'Súmate' },
-  { id: 'cielo', n: '04', label: 'El cielo' },
-  { id: 'participa', n: '05', label: 'Registro' },
-] as const;
-
-const WAYS = [
-  { id: 'asistir', title: 'Ven a la plaza', text: `${polioEvent.dateLabel}, ${polioEvent.timeLabel}. ${polioEvent.place}.`, tag: 'Presencial', photo: '50% 30%' },
-  { id: 'voluntariado', title: 'Hazte voluntario', text: 'Montaje, globos y difusión. Te contamos cómo ayudar.', tag: 'Equipo', photo: '20% 60%' },
-  { id: 'donar', title: 'Dona', text: 'Cada euro de Rotary para la polio se multiplica con sus aliados.', tag: 'End Polio Now', photo: null },
-  { id: 'difundir', title: 'Difunde', text: 'Un mensaje en tu grupo de WhatsApp puede sumar diez globos.', tag: 'Online', photo: '80% 40%' },
-  { id: 'patrocinar', title: 'Patrocina', text: 'Empresas de Pamplona junto a una causa global.', tag: 'Empresas', photo: null },
+  { id: 'evento', n: '02', label: 'El evento' },
+  { id: 'participa', n: '03', label: 'Participa' },
+  { id: 'preguntas', n: '04', label: 'Preguntas' },
 ] as const;
 
 const FAQ = [
   ['¿Hay riesgo de polio en España?', 'España está libre de polio, pero mientras el virus circule en algún país puede volver a viajar. Mantener la vacunación es la mejor protección: consulta el calendario vacunal con tu centro de salud.'],
-  ['¿Qué haréis con mis datos?', 'Solo los usamos para informarte de esta campaña. No los cedemos ni los vendemos. Cada mensaje incluye cómo darte de baja.'],
+  ['¿Hace falta inscribirse?', 'No. El acto es público y gratuito: basta con acercarse a la Plaza del Castillo el sábado 24 de octubre a las 19:30.'],
   ['¿A dónde va el dinero que done?', 'Las donaciones en línea van directamente a la Fundación Rotaria para el programa PolioPlus, a través de End Polio Now.'],
   ['¿Tengo que ser socio de Rotary?', 'No. La campaña está abierta a todo el mundo, de cualquier edad.'],
-  ['¿Qué pasa si llueve?', 'Si cambia algo, avisaremos por WhatsApp a las personas registradas.'],
+  ['¿Qué pasa si llueve?', 'Si hubiera algún cambio, lo publicaremos en esta página y en los canales de Rotary Club Pamplona y Rotaract Horizon Pamplona.'],
 ] as const;
 
 /* --------------------------------- hooks ---------------------------------- */
@@ -85,6 +72,20 @@ function Title({ children, className = '' }: { children: React.ReactNode; classN
   return <h2 className={`pe-sans text-[34px] leading-[1.05] sm:text-[48px] lg:text-[56px] ${className}`}>{children}</h2>;
 }
 
+/** Enlace discreto: texto con flecha y subrayado fino. */
+function SubtleLink({ href, children, external = false }: { href: string; children: React.ReactNode; external?: boolean }) {
+  return (
+    <a
+      href={href}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      className="group inline-flex items-center gap-1.5 border-b border-white/25 pb-0.5 text-[14px] text-white/75 transition hover:border-white hover:text-white"
+    >
+      {children}
+      <ArrowUpRight className="size-3.5 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+    </a>
+  );
+}
+
 function ScrollText({ text, accent }: { text: string; accent: string[] }) {
   const ref = useRef<HTMLParagraphElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start 80%', 'end 50%'] });
@@ -105,66 +106,49 @@ function Word({ children, progress, range, accent }: { children: string; progres
   );
 }
 
-function Lockup() {
+/** Logos oficiales en su color original, sobre blanco (sin recolorear las marcas). */
+function Logos({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
+  const h = size === 'lg' ? 'h-9 sm:h-14' : 'h-6 sm:h-7';
   return (
-    <span className="inline-flex items-center gap-3">
-      {polioLogos.rotaryClub
-        ? <Image src={polioLogos.rotaryClub} alt="Rotary Club Pamplona" width={180} height={54} className="h-7 w-auto" />
-        : <span className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] text-white sm:text-[13px]">Rotary Club Pamplona</span>}
-      <span className="hidden h-4 w-px bg-white/25 sm:block" aria-hidden="true" />
-      <Image src={polioLogos.rotaract} alt="Rotaract Horizon Pamplona" width={120} height={50} className="hidden h-6 w-auto brightness-0 invert opacity-80 sm:block" />
+    <span className={`inline-flex items-center rounded-full bg-white ${size === 'lg' ? 'max-w-full gap-4 px-6 py-4 sm:gap-10 sm:px-12 sm:py-5' : 'gap-3 px-3.5 py-1.5 sm:gap-4 sm:px-4'}`}>
+      {polioLogos.rotaryClub && (
+        <Image src={polioLogos.rotaryClub} alt="Rotary Club Pamplona" width={172} height={67} className={`${h} w-auto`} />
+      )}
+      <span className={`w-px bg-black/15 ${size === 'lg' ? 'h-8 sm:h-10' : 'h-5'}`} aria-hidden="true" />
+      <Image src={polioLogos.rotaract} alt="Rotaract Pamplona Horizon" width={994} height={312} className={`${h} w-auto`} />
     </span>
   );
 }
 
 /* --------------------------------- página --------------------------------- */
 
-export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMode; initialCount: number; inviter: string | null }) {
-  const [count, setCount] = useState(initialCount);
-  const [me, setMe] = useState<Registered | null>(null);
-  const [chosen, setChosen] = useState<string[]>(['asistir']);
+export function PolioLanding({ mode, inviter }: { mode: CampaignMode; inviter: string | null }) {
   const [scrolled, setScrolled] = useState(false);
-  const { toast, node: toastNode } = useToast();
   const reduce = useReducedMotion();
   const active = useActiveChapter();
   const cd = useCountdown(polioEvent.start);
   const heroRef = useRef<HTMLElement>(null);
-  const formRef = useRef<HTMLElement>(null);
-  const formInView = useInView(formRef, { margin: '-20% 0px' });
   const { scrollYProgress: heroP } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const photoY = useTransform(heroP, [0, 1], ['0%', '14%']);
   const copyY = useTransform(heroP, [0, 1], [0, -60]);
   const launch = mode === 'lanzamiento';
-  const lowCount = count < polioCampaign.counterThreshold;
-  const pct = Math.min(1, count / polioCampaign.goal);
+  const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${polioCampaign.name} · ${polioEvent.place}`)}&dates=20261024T173000Z/20261024T190000Z&location=${encodeURIComponent(polioEvent.address)}`;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    const id = setInterval(() => {
-      fetch('/api/polio/stats').then((r) => r.json()).then((d) => typeof d.count === 'number' && setCount(d.count)).catch(() => {});
-    }, 60_000);
-    return () => { window.removeEventListener('scroll', onScroll); clearInterval(id); };
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  const toggle = (id: string) => setChosen((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
-  const onRegistered = (r: Registered) => { setMe(r); setCount(r.count); };
-  const myUrl = me ? shareUrl(me.ref) : null;
-  const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${polioCampaign.name} · ${polioEvent.place}`)}&dates=20261024T173000Z/20261024T190000Z&location=${encodeURIComponent(polioEvent.address)}`;
 
   return (
     <div className="pe min-h-screen bg-black text-white selection:bg-[#E4262F]/60">
-      <a href="#participa" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-black">
-        Ir al registro
-      </a>
-
       {/* ------------------------------ NAV ------------------------------ */}
       <header className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${scrolled ? 'border-b border-white/10 bg-black/80 backdrop-blur-xl' : 'border-b border-transparent'}`}>
         <nav aria-label="Campaña" className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
-          <Link href="/polio" aria-label="Pamplona contra la Polio, inicio"><Lockup /></Link>
+          <Link href="/polio" aria-label="Pamplona contra la Polio, inicio"><Logos /></Link>
           <ol className="hidden items-center gap-7 lg:flex">
-            {CHAPTERS.slice(0, 4).map((c) => (
+            {CHAPTERS.map((c) => (
               <li key={c.id}>
                 <a href={`#${c.id}`} aria-current={active === c.id ? 'location' : undefined}
                   className={`relative text-[13px] transition-colors ${active === c.id ? 'text-white' : 'text-white/50 hover:text-white'}`}>
@@ -174,14 +158,9 @@ export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMo
               </li>
             ))}
           </ol>
-          <div className="flex items-center gap-3">
-            <span className="hidden items-center gap-2 rounded-full border border-white/15 px-3.5 py-1.5 font-mono text-[12px] tabular-nums text-white/70 sm:inline-flex" aria-hidden="true">
-              <span className="size-1.5 rounded-full bg-[#FF4B4B]" /> {cd.d}d {cd.h}h {cd.m}m
-            </span>
-            <a href="#participa" className="inline-flex h-9 items-center rounded-full bg-white px-4 text-[13px] font-medium text-black transition hover:bg-white/85">
-              Participar
-            </a>
-          </div>
+          <span className="hidden items-center gap-2 rounded-full border border-white/15 px-3.5 py-1.5 font-mono text-[12px] tabular-nums text-white/70 sm:inline-flex" aria-hidden="true">
+            <span className="size-1.5 rounded-full bg-[#FF4B4B]" /> {cd.d}d {cd.h}h {cd.m}m
+          </span>
         </nav>
       </header>
 
@@ -210,7 +189,7 @@ export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMo
               <motion.p initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
                 className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-[13px] text-white backdrop-blur-md">
                 <span className="grid size-5 place-items-center rounded-full bg-white text-[11px] font-semibold text-black">{inviter[0]}</span>
-                {inviter} te ha invitado a sumarte
+                {inviter} te invita a la Plaza del Castillo
               </motion.p>
             )}
 
@@ -227,17 +206,11 @@ export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMo
             <div className="mt-10 grid gap-10 border-t border-white/15 pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
               <Reveal delay={0.4} y={12}>
                 <p className="max-w-md text-[16px] leading-relaxed text-white/65">
-                  {launch
-                    ? 'La plaza se ilumina de rojo y soltamos globos por los niños que aún no están protegidos.'
-                    : 'Una noche para hacer visible una lucha que casi hemos ganado. Suma tu globo y te lo contamos antes que a nadie.'}
+                  Rotary Club Pamplona y Rotaract Horizon Pamplona iluminan la Plaza del Castillo de rojo y sueltan globos por los niños que aún no están protegidos frente a la polio.
                 </p>
-                <div className="mt-7 flex flex-wrap gap-3">
-                  <a href="#participa" className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-white pl-5 pr-6 text-[15px] font-medium text-black transition hover:bg-white/85">
-                    <Plus className="size-4" /> Sumar mi globo
-                  </a>
-                  <a href="/polio/evento.ics" className="inline-flex h-12 items-center gap-2.5 rounded-full border border-white/25 px-5 text-[15px] text-white transition hover:border-white/60 hover:bg-white/5">
-                    <CalendarPlus className="size-4" /> Añadir al calendario
-                  </a>
+                <div className="mt-7 flex flex-wrap gap-x-7 gap-y-3">
+                  <SubtleLink href="/polio/evento.ics">Añadir al calendario</SubtleLink>
+                  <SubtleLink href={polioEvent.mapsUrl} external>Cómo llegar</SubtleLink>
                 </div>
               </Reveal>
 
@@ -261,19 +234,6 @@ export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMo
             </div>
           </motion.div>
         </section>
-
-        {/* Barra de progreso de la campaña, a sangre */}
-        <div className="border-y border-white/10">
-          <div className="mx-auto flex max-w-[1400px] flex-col gap-3 px-5 py-5 text-[13px] sm:flex-row sm:items-center sm:gap-8 sm:px-8 lg:px-10">
-            <p className="shrink-0 text-white/55">
-              {lowCount ? <>Sé de los primeros · meta <span className="text-white">{polioCampaign.goal} globos</span></> : <><span className="tabular-nums text-white">{count}</span> globos de {polioCampaign.goal}</>}
-            </p>
-            <div className="relative h-px flex-1 bg-white/15">
-              <motion.div className="absolute inset-y-0 left-0 bg-white" initial={{ width: 0 }} whileInView={{ width: `${Math.max(pct * 100, 1.5)}%` }} viewport={{ once: true }} transition={{ duration: 1.6, ease: EASE }} />
-            </div>
-            <p className="shrink-0 font-mono text-[12px] text-white/45">{polioCampaign.hashtag}</p>
-          </div>
-        </div>
 
         {/* ---------------------------- 01 LA POLIO ------------------------- */}
         <section id="polio" className="mx-auto max-w-[1400px] scroll-mt-16 px-5 py-28 sm:px-8 sm:py-40 lg:px-10">
@@ -310,119 +270,91 @@ export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMo
           </dl>
           <p className="mt-4 text-[12px] text-white/35">
             Fuentes: <a className="underline underline-offset-2 hover:text-white" href={polioCampaign.gpeiUrl} target="_blank" rel="noopener noreferrer">GPEI</a> y{' '}
-            <a className="underline underline-offset-2 hover:text-white" href={polioCampaign.endPolioUrl} target="_blank" rel="noopener noreferrer">End Polio Now</a>. Cifras aproximadas, pendientes de validación.
+            <a className="underline underline-offset-2 hover:text-white" href={polioCampaign.endPolioUrl} target="_blank" rel="noopener noreferrer">End Polio Now</a>.
           </p>
         </section>
 
-        {/* ---------------------------- 02 LA NOCHE ------------------------- */}
-        <section id="noche" className="scroll-mt-16 border-t border-white/10 py-28 sm:py-36">
+        {/* ---------------------------- 02 EL EVENTO ------------------------ */}
+        <section id="evento" className="scroll-mt-16 border-t border-white/10 py-28 sm:py-36">
           <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10">
             <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
               <div className="lg:col-span-7">
-                <Reveal><Kicker n="02">La noche</Kicker></Reveal>
-                <Reveal delay={0.05}><Title className="mt-6">{launch ? 'La plaza se enciende de rojo.' : '¿Qué pasará a las 19:30?'}</Title></Reveal>
+                <Reveal><Kicker n="02">El evento</Kicker></Reveal>
+                <Reveal delay={0.05}><Title className="mt-6">Una noche en rojo en el corazón de Pamplona.</Title></Reveal>
               </div>
               <Reveal delay={0.1} className="lg:col-span-5">
                 <p className="text-[16px] leading-relaxed text-white/60">
-                  {launch
-                    ? 'Cada globo rojo representa a un niño que merece crecer sin polio. Con la plaza iluminada en el rojo de End Polio Now, Pamplona recordará que el último tramo depende de todos.'
-                    : 'Pamplona va a hacer visible una lucha que casi hemos ganado. Esto es lo que va a pasar en la Plaza del Castillo.'}
+                  Con la Plaza del Castillo iluminada en el rojo de End Polio Now, cada globo representa a un niño que merece crecer sin polio.
+                  Un acto abierto a todos para recordar que el último tramo depende de nosotros.
                 </p>
               </Reveal>
             </div>
 
             <Reveal delay={0.1}>
-              <figure className="relative mt-14 overflow-hidden rounded-2xl border border-white/10 bg-[#0B0507]">
+              <figure className="relative mt-14 aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 sm:aspect-[1376/600]">
+                <Image src={polioPlaza.src} alt={polioPlaza.alt} fill sizes="(min-width: 1400px) 1320px, 100vw" className="object-cover object-[60%_50%] brightness-[0.72] saturate-[0.8] contrast-[1.05]" />
+                <div className="absolute inset-0 bg-[#4A0A10] mix-blend-multiply opacity-35" aria-hidden="true" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-[#E4262F]/10 to-transparent" aria-hidden="true" />
                 {launch && <BalloonCanvas ambient count={reduce ? 10 : 22} speed={0.8} className="absolute inset-0 h-full w-full" />}
-                <PlazaScene mode={mode} />
-                <figcaption className="absolute left-5 top-5 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-[12px] text-white/75 backdrop-blur-md">
+                <figcaption className="absolute bottom-5 left-5 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-[12px] text-white/80 backdrop-blur-md">
                   <MapPin className="size-3.5" /> {polioEvent.place}, {polioEvent.city}
                 </figcaption>
               </figure>
             </Reveal>
 
-            <ol className="mt-4 divide-y divide-white/10 border-y border-white/10">
-              {polioEvent.programme.map((p, i) => (
-                <Reveal key={p.time} delay={i * 0.06}>
-                  <li className="grid grid-cols-[88px_1fr_auto] items-center gap-6 py-6 sm:grid-cols-[160px_1fr_auto]">
-                    <span className="font-display text-[32px] leading-none tabular-nums sm:text-[44px]">{p.time}</span>
-                    <span className="text-[16px] text-white/80 sm:text-[18px]">{p.text}</span>
-                    <span className="font-mono text-[12px] text-white/35">0{i + 1}</span>
-                  </li>
-                </Reveal>
-              ))}
-            </ol>
-            {!me && (
-              <Reveal>
-                <a href="#participa" className="mt-6 inline-block text-[14px] text-white/45 underline underline-offset-4 hover:text-white/70">Suma tu globo para que te avisemos si algo cambia.</a>
+            <div className="mt-4 grid gap-10 lg:grid-cols-12">
+              <ol className="divide-y divide-white/10 border-y border-white/10 lg:col-span-8">
+                {polioEvent.programme.map((p, i) => (
+                  <Reveal key={p.time} delay={i * 0.06}>
+                    <li className="grid grid-cols-[88px_1fr_auto] items-center gap-6 py-6 sm:grid-cols-[160px_1fr_auto]">
+                      <span className="font-display text-[32px] leading-none tabular-nums sm:text-[44px]">{p.time}</span>
+                      <span className="text-[16px] text-white/80 sm:text-[18px]">{p.text}</span>
+                      <span className="font-mono text-[12px] text-white/35">0{i + 1}</span>
+                    </li>
+                  </Reveal>
+                ))}
+              </ol>
+              <Reveal delay={0.1} className="lg:col-span-4">
+                <dl className="grid gap-5 border-t border-white/10 pt-6 text-[14px] lg:border-t-0 lg:pt-6">
+                  {[['Fecha', `${polioEvent.dateLabel} de 2026`], ['Hora', polioEvent.timeLabel], ['Lugar', polioEvent.address], ['Entrada', 'Libre y gratuita']].map(([k, v]) => (
+                    <div key={k}>
+                      <dt className="text-[11px] uppercase tracking-[0.18em] text-white/40">{k}</dt>
+                      <dd className="mt-1 text-white/85">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="mt-7 flex flex-wrap gap-x-7 gap-y-3">
+                  <SubtleLink href="/polio/evento.ics">Calendario</SubtleLink>
+                  <SubtleLink href={gcal} external>Google Calendar</SubtleLink>
+                  <SubtleLink href={polioEvent.mapsUrl} external>Cómo llegar</SubtleLink>
+                </div>
               </Reveal>
-            )}
+            </div>
           </div>
         </section>
 
-        {/* ---------------------------- 03 SÚMATE --------------------------- */}
-        <Ways chosen={chosen} onToggle={toggle} />
+        {/* ---------------------------- 03 PARTICIPA ------------------------ */}
+        <Participa />
 
-        {/* ---------------------------- 04 EL CIELO ------------------------- */}
-        <section id="cielo" className="relative isolate scroll-mt-16 overflow-hidden border-t border-white/10 py-32 sm:py-44">
-          <BalloonCanvas count={Math.min(count, 240)} highlightLabel={me ? `Tu globo · nº ${me.seq}` : null} speed={0.5} className="absolute inset-0 -z-10 h-full w-full opacity-80" />
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_60%_at_50%_50%,transparent,black)]" aria-hidden="true" />
-          <div className="mx-auto max-w-[1400px] px-5 text-center sm:px-8 lg:px-10">
-            <Reveal><Kicker n="04" className="justify-center">El cielo de Pamplona</Kicker></Reveal>
-            <Reveal delay={0.05}>
-              <p className="mt-10 font-display text-[120px] leading-[0.85] tabular-nums tracking-[-0.04em] sm:text-[200px]">
-                <CountUp to={count} /><span className="text-[0.3em] text-white/35 tracking-normal"> / {polioCampaign.goal}</span>
+        {/* ----------------------------- ORGANIZAN -------------------------- */}
+        <section aria-labelledby="organizan" className="border-t border-white/10 py-24">
+          <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-8 px-5 text-center sm:px-8 lg:px-10">
+            <Reveal><Kicker className="justify-center"><span id="organizan">Organizan</span></Kicker></Reveal>
+            <Reveal delay={0.05}><Logos size="lg" /></Reveal>
+            <Reveal delay={0.1}>
+              <p className="max-w-xl text-[15px] leading-relaxed text-white/55">
+                Rotary lidera la erradicación de la polio desde 1985 con el programa PolioPlus, junto a la OMS, UNICEF y los socios de la Iniciativa Mundial.
+                Rotary Club Pamplona, con Rotaract Horizon Pamplona, se suma al Día Mundial contra la Polio desde el corazón de la ciudad.
               </p>
             </Reveal>
-            <Reveal delay={0.1}><Title className="mx-auto mt-8 max-w-2xl">Cada globo es una persona que se suma.</Title></Reveal>
-            <Reveal delay={0.15}>
-              <p className="mx-auto mt-5 max-w-md text-[15px] text-white/55">
-                {me ? 'Ahí está el tuyo. Invita a tres personas y haz que el cielo se llene.' : 'Suma el tuyo y míralo subir. Queremos llenar el cielo antes del 24 de octubre.'}
-              </p>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ---------------------------- 05 REGISTRO ------------------------- */}
-        <section id="participa" ref={formRef} className="scroll-mt-16 border-t border-white/10 py-28 sm:py-36">
-          <div className="mx-auto grid max-w-[1400px] gap-14 px-5 sm:px-8 lg:grid-cols-12 lg:gap-10 lg:px-10">
-            <div className="lg:col-span-5">
-              <div className="lg:sticky lg:top-28">
-                <Reveal><Kicker n="05">Registro</Kicker></Reveal>
-                <Reveal delay={0.05}><Title className="mt-6">Suma tu globo al cielo de Pamplona.</Title></Reveal>
-                {inviter && !me && (
-                  <Reveal delay={0.08}><p className="mt-6 text-[15px] text-white/70">Vienes de parte de <span className="text-white">{inviter}</span>. Tu globo subirá junto al suyo.</p></Reveal>
-                )}
-                <Reveal delay={0.1}>
-                  <ul className="mt-10 divide-y divide-white/10 border-y border-white/10 text-[15px]">
-                    {['Conoce la iniciativa antes que nadie.', 'Pocos mensajes, solo de esta campaña.', 'Tu enlace para invitar y ver tu globo volar.'].map((t, i) => (
-                      <li key={t} className="flex gap-5 py-4 text-white/70"><span className="font-mono text-[12px] leading-6 text-white/35">0{i + 1}</span>{t}</li>
-                    ))}
-                  </ul>
-                </Reveal>
-                <Reveal delay={0.14}>
-                  <p className="mt-8 text-[13px] text-white/45">
-                    Tu globo será el <span className="text-white tabular-nums">nº {count + 1}</span> · {Math.max(0, polioCampaign.goal - count)} para la meta
-                  </p>
-                </Reveal>
-              </div>
-            </div>
-
-            <div className="lg:col-span-7">
-              {me && myUrl ? (
-                <Ticket me={me} url={myUrl} onCopy={() => copyText(myUrl, toast)} gcal={gcal} />
-              ) : (
-                <RegisterForm chosen={chosen} onToggle={toggle} onRegistered={onRegistered} />
-              )}
-            </div>
           </div>
         </section>
 
         {/* ------------------------------- FAQ ------------------------------ */}
-        <section className="border-t border-white/10 py-28">
+        <section id="preguntas" className="scroll-mt-16 border-t border-white/10 py-28">
           <div className="mx-auto grid max-w-[1400px] gap-10 px-5 sm:px-8 lg:grid-cols-12 lg:px-10">
             <div className="lg:col-span-5">
-              <Kicker>Preguntas</Kicker>
+              <Kicker n="04">Preguntas</Kicker>
               <Title className="mt-6">Lo que suele preguntarse.</Title>
             </div>
             <div className="lg:col-span-7">
@@ -451,7 +383,7 @@ export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMo
               <p className="max-w-[30ch] leading-relaxed text-white/55">{polioCampaign.name}. Una noche en rojo para terminar lo que empezamos en 1985.</p>
             </div>
             <FooterCol title="El evento" links={[
-              [`${polioEvent.dateLabel} · ${polioEvent.timeLabel}`, '#noche'],
+              [`${polioEvent.dateLabel} · ${polioEvent.timeLabel}`, '#evento'],
               ['Añadir al calendario', '/polio/evento.ics'],
               ['Google Calendar', gcal],
               ['Cómo llegar', polioEvent.mapsUrl],
@@ -473,21 +405,6 @@ export function PolioLanding({ mode, initialCount, inviter }: { mode: CampaignMo
           </div>
         </div>
       </footer>
-
-      {/* Barra fija en móvil */}
-      <motion.div
-        initial={false}
-        animate={{ y: scrolled && !formInView && !me ? 0 : 120 }}
-        transition={{ duration: 0.5, ease: EASE }}
-        className="fixed inset-x-3 bottom-3 z-[60] sm:hidden"
-      >
-        <a href="#participa" className="flex items-center justify-between rounded-full border border-white/15 bg-black/85 py-2 pl-5 pr-2 backdrop-blur-xl">
-          <span className="font-mono text-[12px] tabular-nums text-white/75">{cd.d}d {cd.h}h {cd.m}m · 19:30</span>
-          <span className="rounded-full bg-white px-4 py-2.5 text-[13px] font-medium text-black">Sumar mi globo</span>
-        </a>
-      </motion.div>
-
-      {toastNode}
     </div>
   );
 }
@@ -529,124 +446,39 @@ function Timeline() {
   );
 }
 
-function Ways({ chosen, onToggle }: { chosen: string[]; onToggle: (id: string) => void }) {
-  const rail = useRef<HTMLDivElement>(null);
-  const scroll = (dir: 1 | -1) => rail.current?.scrollBy({ left: dir * Math.min(600, rail.current.clientWidth * 0.8), behavior: 'smooth' });
-  const labels = WAYS.filter((w) => chosen.includes(w.id)).map((w) => w.title);
-
+function Participa() {
+  const ways: { title: string; text: string; link?: [string, string, boolean] | 'share' }[] = [
+    { title: 'Ven a la plaza', text: `${polioEvent.dateLabel}, ${polioEvent.timeLabel}. ${polioEvent.place}. Acto abierto y gratuito.`, link: ['Cómo llegar', polioEvent.mapsUrl, true] },
+    { title: 'Dona', text: 'Cada euro de Rotary para la polio se multiplica con sus aliados y llega a las campañas de vacunación.', link: ['Donar en End Polio Now', polioCampaign.donateUrl, true] },
+    { title: 'Difunde', text: 'Comparte esta página en tus grupos. Cuanta más gente lo sepa, más fuerte se oye el mensaje.', link: 'share' },
+    { title: 'Colabora', text: 'Empresas y entidades de Pamplona pueden sumarse como patrocinadoras junto a una causa global.' },
+  ];
   return (
-    <section id="sumate" className="scroll-mt-16 border-t border-white/10 py-28 sm:py-36">
+    <section id="participa" className="scroll-mt-16 border-t border-white/10 py-28 sm:py-36">
       <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10">
-        <div className="flex items-end justify-between gap-6">
-          <div>
-            <Reveal><Kicker n="03">Súmate</Kicker></Reveal>
-            <Reveal delay={0.05}><Title className="mt-6 max-w-xl">Elige cómo quieres estar.</Title></Reveal>
-          </div>
-          <div className="hidden gap-2 sm:flex">
-            <button type="button" onClick={() => scroll(-1)} aria-label="Anterior" className="grid size-10 place-items-center rounded-full border border-white/20 text-white/70 transition hover:border-white hover:text-white"><ArrowLeft className="size-4" /></button>
-            <button type="button" onClick={() => scroll(1)} aria-label="Siguiente" className="grid size-10 place-items-center rounded-full border border-white/20 text-white/70 transition hover:border-white hover:text-white"><ArrowRight className="size-4" /></button>
-          </div>
-        </div>
-      </div>
+        <Reveal><Kicker n="03">Participa</Kicker></Reveal>
+        <Reveal delay={0.05}><Title className="mt-6 max-w-xl">Cuatro formas de sumarte.</Title></Reveal>
 
-      <div ref={rail} className="pe-rail mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 pb-2 sm:scroll-px-8 sm:px-8 lg:scroll-px-10 lg:px-10 xl:px-[max(2.5rem,calc((100vw_-_1400px)/2_+_2.5rem))] xl:scroll-px-[max(2.5rem,calc((100vw_-_1400px)/2_+_2.5rem))]">
-        {WAYS.map((w, i) => {
-          const on = chosen.includes(w.id);
-          return (
-            <article key={w.id} className="w-[76vw] max-w-[300px] shrink-0 snap-start">
-              <button
-                type="button" role="checkbox" aria-checked={on} onClick={() => onToggle(w.id)}
-                className={`group relative block aspect-[3/4] w-full overflow-hidden rounded-2xl border text-left transition duration-500 ${on ? 'border-white' : 'border-white/10 hover:border-white/40'}`}
-              >
-                {w.photo ? (
-                  <Image src={polioHero.src} alt="" fill sizes="300px" style={{ objectPosition: w.photo }}
-                    className="object-cover grayscale brightness-[0.55] transition duration-700 group-hover:scale-105 group-hover:grayscale-[40%]" />
-                ) : (
-                  <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_80%_0%,rgba(228,38,47,0.35),transparent_60%),linear-gradient(180deg,#141011,#0A0708)]" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                <span className="absolute left-4 top-4 font-mono text-[12px] text-white/60">0{i + 1}</span>
-                <span className={`absolute right-4 top-4 grid size-7 place-items-center rounded-full border transition ${on ? 'border-white bg-white text-black' : 'border-white/40 text-white/70 group-hover:border-white'}`}>
-                  {on ? <Check className="size-3.5" strokeWidth={2.5} /> : <Plus className="size-3.5" />}
-                </span>
-                <div className="absolute inset-x-4 bottom-4">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/50">{w.tag}</p>
-                  <h3 className="pe-sans mt-2 text-[24px] leading-tight">{w.title}</h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-white/60">{w.text}</p>
-                </div>
-              </button>
-              {w.id === 'donar' && (
-                <a href={polioCampaign.donateUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-[13px] text-white/60 hover:text-white">
-                  Donar en End Polio Now <ArrowUpRight className="size-3.5" />
+        <div className="mt-14 grid border-t border-white/10 sm:grid-cols-2 lg:grid-cols-4">
+          {ways.map((w, i) => (
+            <Reveal key={w.title} delay={i * 0.06}
+              className={`border-b border-white/10 py-8 sm:pr-8 ${i % 2 ? 'sm:border-l sm:pl-8' : ''} ${i > 0 ? 'lg:border-l lg:pl-8' : ''} lg:border-b-0`}>
+              <p className="font-mono text-[12px] text-white/40">0{i + 1}</p>
+              <h3 className="pe-sans mt-4 text-[24px] leading-tight">{w.title}</h3>
+              <p className="mt-3 text-[14px] leading-relaxed text-white/55">{w.text}</p>
+              {w.link === 'share' ? (
+                <a href="https://wa.me/" onClick={(e) => { e.currentTarget.href = waLink(shareUrl()); }} target="_blank" rel="noopener noreferrer"
+                  className="group mt-5 inline-flex items-center gap-1.5 border-b border-white/25 pb-0.5 text-[14px] text-white/75 transition hover:border-white hover:text-white">
+                  Compartir por WhatsApp <ArrowUpRight className="size-3.5" />
                 </a>
-              )}
-            </article>
-          );
-        })}
-      </div>
-
-      <div className="mx-auto mt-8 max-w-[1400px] px-5 sm:px-8 lg:px-10">
-        <div className="flex flex-col gap-4 rounded-2xl border border-white/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[14px] text-white/55" aria-live="polite">
-            {labels.length ? <>Tu selección: <span className="text-white">{labels.join(' · ')}</span></> : 'Toca una tarjeta para elegir cómo sumarte.'}
-          </p>
-          <a href="#participa" className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 text-[14px] font-medium text-black transition hover:bg-white/85">
-            Continuar <ArrowRight className="size-4" />
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Ticket({ me, url, onCopy, gcal }: { me: Registered; url: string; onCopy: () => void; gcal: string }) {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE }}
-      tabIndex={-1} ref={(el) => el?.focus()} className="outline-none"
-    >
-      <div className="overflow-hidden rounded-3xl border border-white/15 bg-[#0C0C0C]">
-        <div className="relative p-7 sm:p-10">
-          <div className="absolute inset-0 bg-[radial-gradient(70%_90%_at_100%_0%,rgba(228,38,47,0.35),transparent_60%)]" aria-hidden="true" />
-          <div className="relative flex items-start justify-between gap-6">
-            <Kicker>Pase · {polioCampaign.name}</Kicker>
-            <span className="font-mono text-[12px] text-white/50">#{me.ref}</span>
-          </div>
-          <p className="relative mt-10 font-display text-[88px] leading-[0.85] tabular-nums tracking-[-0.03em] sm:text-[128px]">
-            <span className="text-white/30">nº</span> {String(me.seq).padStart(3, '0')}
-          </p>
-          <p className="relative mt-5 pe-sans text-[26px] leading-tight sm:text-[32px]">Gracias, {me.nombre}. <span className="text-white/45">Tu globo ya vuela.</span></p>
-        </div>
-        <div className="relative grid grid-cols-3 border-t border-dashed border-white/15 text-[13px]">
-          <span className="absolute -left-3 -top-3 size-6 rounded-full bg-black" aria-hidden="true" />
-          <span className="absolute -right-3 -top-3 size-6 rounded-full bg-black" aria-hidden="true" />
-          {[['Fecha', '24 oct 2026'], ['Hora', '19:30 h'], ['Lugar', polioEvent.place]].map(([k, v]) => (
-            <div key={k} className="border-r border-white/10 px-5 py-5 last:border-r-0 sm:px-7">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">{k}</p>
-              <p className="mt-1.5 text-white">{v}</p>
-            </div>
+              ) : w.link ? (
+                <div className="mt-5"><SubtleLink href={w.link[1]} external={w.link[2]}>{w.link[0]}</SubtleLink></div>
+              ) : null}
+            </Reveal>
           ))}
         </div>
       </div>
-
-      <p className="mt-8 text-[15px] text-white/60">Ayúdanos a llegar a {polioCampaign.goal}: invita a tres personas. Tu enlace muestra tu invitación personal en WhatsApp.</p>
-      <div className="mt-5 flex flex-wrap gap-3">
-        <a href={waLink(url)} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-[15px] font-medium text-black transition hover:bg-white/85">
-          <Share2 className="size-4" /> Invitar por WhatsApp
-        </a>
-        <button type="button" onClick={onCopy} className="inline-flex h-12 items-center gap-2 rounded-full border border-white/25 px-5 text-[15px] transition hover:border-white/60">
-          <Copy className="size-4" /> Copiar mi enlace
-        </button>
-        <a href={gcal} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-full border border-white/25 px-5 text-[15px] transition hover:border-white/60">
-          <CalendarPlus className="size-4" /> Calendario
-        </a>
-        <a href={polioEvent.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-full border border-white/25 px-5 text-[15px] transition hover:border-white/60">
-          <Navigation className="size-4" /> Cómo llegar
-        </a>
-      </div>
-      <a href="#cielo" className="mt-6 inline-block text-[13px] text-white/50 underline underline-offset-4 hover:text-white">Ver mi globo en el cielo</a>
-    </motion.div>
+    </section>
   );
 }
 
@@ -666,4 +498,3 @@ function FooterCol({ title, links }: { title: string; links: [string, string][] 
     </div>
   );
 }
-

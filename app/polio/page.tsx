@@ -41,8 +41,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     : 'Pamplona contra la Polio 2026 · 24 oct, Plaza del Castillo';
   const description =
     mode === 'lanzamiento' || inviter
-      ? `La Plaza del Castillo se enciende de rojo y lanzamos ${polioEvent.balloonLaunch} globos. 24 de octubre, 19:30. Suma el tuyo.`
-      : 'Algo rojo llega a la Plaza del Castillo el 24 de octubre a las 19:30. Suma tu globo.';
+      ? `La Plaza del Castillo se enciende de rojo y lanzamos ${polioEvent.balloonLaunch} globos. 24 de octubre, 19:30. Acto abierto a todos.`
+      : 'Algo rojo llega a la Plaza del Castillo el 24 de octubre a las 19:30. Acto abierto a todos.';
   // La URL cambia con la fase y el referido: WhatsApp cachea la miniatura por URL.
   const image = `/api/polio/og-image?${new URLSearchParams({
     ...(ref && inviter ? { ref } : { m: mode }),
@@ -70,6 +70,6 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function PolioPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const [{ mode, count }, inviter] = await Promise.all([campaignState(), inviterName(refParam(sp.ref))]);
-  return <PolioLanding mode={mode} initialCount={count} inviter={inviter} />;
+  const [{ mode }, inviter] = await Promise.all([campaignState(), inviterName(refParam(sp.ref))]);
+  return <PolioLanding mode={mode} inviter={inviter} />;
 }

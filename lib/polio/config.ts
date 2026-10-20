@@ -48,9 +48,9 @@ export const polioCampaign = {
  * Descarga oficial: Rotary Brand Center (brandcenter.rotary.org), con cuenta My Rotary.
  */
 export const polioLogos: { rotaryClub: string | null; endPolioNow: string | null; rotaract: string } = {
-  rotaryClub: null, // p. ej. '/polio/logos/rotary-club-pamplona-blanco.svg'
+  rotaryClub: '/polio/rotary-club.png',
   endPolioNow: null, // p. ej. '/polio/logos/end-polio-now-blanco.svg'
-  rotaract: '/assets/rotaract.png',
+  rotaract: '/polio/rotaract-pamplona-horizon.png',
 };
 
 export const INTERESTS = [
@@ -69,4 +69,9 @@ export const CONSENT_VERSION = 'v1-2026-09-30';
 /** Foto del hero (y de las tarjetas de «Súmate»). */
 export const polioHero = {
   src: '/polio/hero-rotary-end-polio.jpg',
+};
+
+export const polioPlaza = {
+  src: '/polio/plaza-del-castillo-pamplona-1.jpg',
+  alt: 'Plaza del Castillo de Pamplona, con su templete y las fachadas que la rodean',
 };
