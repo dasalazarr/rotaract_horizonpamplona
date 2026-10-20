@@ -14,12 +14,10 @@ export const polioEvent = {
   city: 'Pamplona',
   address: 'Plaza del Castillo, 31001 Pamplona, Navarra',
   mapsUrl: 'https://maps.google.com/?q=Plaza+del+Castillo+Pamplona',
-  // Globos que se lanzan físicamente en la plaza: uno por cada persona registrada, hasta la meta.
-  balloonLaunch: 1000,
   programme: [
     { time: '19:30', text: 'La Plaza del Castillo se enciende de rojo.' },
-    { time: '19:45', text: 'Lanzamos 1.000 globos rojos al cielo de Pamplona.' },
-    { time: '20:00', text: 'Encuentro con voluntarios y punto de donación.' },
+    { time: '19:45', text: 'Inflamos globos rojos: cada uno, un niño que merece crecer sin polio.' },
+    { time: '20:00', text: 'Información sobre la polio y la vacunación, con Rotary y Rotaract.' },
   ],
 };
 
@@ -27,17 +25,15 @@ export const polioCampaign = {
   name: 'Pamplona contra la Polio',
   year: 2026,
   hashtag: '#PamplonaContraLaPolio',
-  // Un globo por persona registrada: coincide con los que se lanzan en la plaza (polioEvent.balloonLaunch).
   goal: 1000,
   // Por debajo de este número el contador muestra una invitación en lugar de la cifra.
   counterThreshold: 20,
   organizer: 'Rotary Club Pamplona',
   partner: 'Rotaract Horizon Pamplona',
-  donateUrl: 'https://www.endpolio.org/es/donate',
   endPolioUrl: 'https://www.endpolio.org/es',
   gpeiUrl: 'https://polioeradication.org/',
   shareText:
-    'El 24 de octubre a las 19:30 Pamplona lanza 1.000 globos rojos contra la polio en la Plaza del Castillo. Apúntate aquí:',
+    'El 24 de octubre a las 19:30 la Plaza del Castillo se enciende de rojo contra la polio. Toda la información:',
   // Sube la versión si cambias las imágenes: WhatsApp cachea la miniatura por URL.
   ogVersion: 'v2',
 };

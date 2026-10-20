@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useInView, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react';
 import { ArrowUpRight, CalendarDays, Clock, MapPin, Plus } from 'lucide-react';
-import { BalloonCanvas } from './BalloonCanvas';
 import { CountUp, EASE, Reveal, shareUrl, waLink } from './shared';
 import { polioCampaign, polioEvent, polioHero, polioLogos, polioPlaza, type CampaignMode } from '@/lib/polio/config';
 
@@ -19,7 +18,8 @@ const CHAPTERS = [
 const FAQ = [
   ['¿Hay riesgo de polio en España?', 'España está libre de polio, pero mientras el virus circule en algún país puede volver a viajar. Mantener la vacunación es la mejor protección: consulta el calendario vacunal con tu centro de salud.'],
   ['¿Hace falta inscribirse?', 'No. El acto es público y gratuito: basta con acercarse a la Plaza del Castillo el sábado 24 de octubre a las 19:30.'],
-  ['¿A dónde va el dinero que done?', 'Las donaciones en línea van directamente a la Fundación Rotaria para el programa PolioPlus, a través de End Polio Now.'],
+  ['¿Se sueltan los globos?', 'No. Los globos se inflan y se quedan en la plaza durante el acto: no se liberan al cielo, para no dejar residuos en el entorno.'],
+  ['¿Qué es End Polio Now?', 'Es la campaña de Rotary para erradicar la polio en el mundo. Su color rojo es el que ilumina la plaza esa noche.'],
   ['¿Tengo que ser socio de Rotary?', 'No. La campaña está abierta a todo el mundo, de cualquier edad.'],
   ['¿Qué pasa si llueve?', 'Si hubiera algún cambio, lo publicaremos en esta página y en los canales de Rotary Club Pamplona y Rotaract Horizon Pamplona.'],
 ] as const;
@@ -206,7 +206,7 @@ export function PolioLanding({ mode, inviter }: { mode: CampaignMode; inviter: s
             <div className="mt-10 grid gap-10 border-t border-white/15 pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
               <Reveal delay={0.4} y={12}>
                 <p className="max-w-md text-[16px] leading-relaxed text-white/65">
-                  Rotary Club Pamplona y Rotaract Horizon Pamplona iluminan la Plaza del Castillo de rojo y sueltan globos por los niños que aún no están protegidos frente a la polio.
+                  Rotary Club Pamplona y Rotaract Horizon Pamplona encienden de rojo la Plaza del Castillo para recordar que la polio aún no está vencida y que la vacuna es la única protección.
                 </p>
                 <div className="mt-7 flex flex-wrap gap-x-7 gap-y-3">
                   <SubtleLink href="/polio/evento.ics">Añadir al calendario</SubtleLink>
@@ -284,8 +284,8 @@ export function PolioLanding({ mode, inviter }: { mode: CampaignMode; inviter: s
               </div>
               <Reveal delay={0.1} className="lg:col-span-5">
                 <p className="text-[16px] leading-relaxed text-white/60">
-                  Con la Plaza del Castillo iluminada en el rojo de End Polio Now, cada globo representa a un niño que merece crecer sin polio.
-                  Un acto abierto a todos para recordar que el último tramo depende de nosotros.
+                  La plaza se ilumina en el rojo de End Polio Now y se llena de globos rojos: cada uno representa a un niño que merece crecer sin polio.
+                  Un acto abierto y gratuito de divulgación y concienciación.
                 </p>
               </Reveal>
             </div>
@@ -295,7 +295,6 @@ export function PolioLanding({ mode, inviter }: { mode: CampaignMode; inviter: s
                 <Image src={polioPlaza.src} alt={polioPlaza.alt} fill sizes="(min-width: 1400px) 1320px, 100vw" className="object-cover object-[60%_50%] brightness-[0.72] saturate-[0.8] contrast-[1.05]" />
                 <div className="absolute inset-0 bg-[#4A0A10] mix-blend-multiply opacity-35" aria-hidden="true" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-[#E4262F]/10 to-transparent" aria-hidden="true" />
-                {launch && <BalloonCanvas ambient count={reduce ? 10 : 22} speed={0.8} className="absolute inset-0 h-full w-full" />}
                 <figcaption className="absolute bottom-5 left-5 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-[12px] text-white/80 backdrop-blur-md">
                   <MapPin className="size-3.5" /> {polioEvent.place}, {polioEvent.city}
                 </figcaption>
@@ -393,7 +392,6 @@ export function PolioLanding({ mode, inviter }: { mode: CampaignMode; inviter: s
               ['Rotary Club Pamplona', '/'],
               ['Rotaract Horizon Pamplona', '/'],
               ['End Polio Now', polioCampaign.endPolioUrl],
-              ['Donar', polioCampaign.donateUrl],
             ]} />
           </div>
           <div className="mt-14 flex flex-col gap-3 border-t border-white/10 py-6 text-[12px] text-white/40 sm:flex-row sm:items-center sm:justify-between">
@@ -449,20 +447,19 @@ function Timeline() {
 function Participa() {
   const ways: { title: string; text: string; link?: [string, string, boolean] | 'share' }[] = [
     { title: 'Ven a la plaza', text: `${polioEvent.dateLabel}, ${polioEvent.timeLabel}. ${polioEvent.place}. Acto abierto y gratuito.`, link: ['Cómo llegar', polioEvent.mapsUrl, true] },
-    { title: 'Dona', text: 'Cada euro de Rotary para la polio se multiplica con sus aliados y llega a las campañas de vacunación.', link: ['Donar en End Polio Now', polioCampaign.donateUrl, true] },
+    { title: 'Infórmate', text: 'Conoce cómo se está erradicando la polio en el mundo y revisa tu calendario vacunal con tu centro de salud.', link: ['End Polio Now', polioCampaign.endPolioUrl, true] },
     { title: 'Difunde', text: 'Comparte esta página en tus grupos. Cuanta más gente lo sepa, más fuerte se oye el mensaje.', link: 'share' },
-    { title: 'Colabora', text: 'Empresas y entidades de Pamplona pueden sumarse como patrocinadoras junto a una causa global.' },
   ];
   return (
     <section id="participa" className="scroll-mt-16 border-t border-white/10 py-28 sm:py-36">
       <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-10">
         <Reveal><Kicker n="03">Participa</Kicker></Reveal>
-        <Reveal delay={0.05}><Title className="mt-6 max-w-xl">Cuatro formas de sumarte.</Title></Reveal>
+        <Reveal delay={0.05}><Title className="mt-6 max-w-xl">Tres formas de sumarte.</Title></Reveal>
 
-        <div className="mt-14 grid border-t border-white/10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-14 grid border-t border-white/10 sm:grid-cols-3">
           {ways.map((w, i) => (
             <Reveal key={w.title} delay={i * 0.06}
-              className={`border-b border-white/10 py-8 sm:pr-8 ${i % 2 ? 'sm:border-l sm:pl-8' : ''} ${i > 0 ? 'lg:border-l lg:pl-8' : ''} lg:border-b-0`}>
+              className={`border-b border-white/10 py-8 sm:border-b-0 sm:pr-8 ${i > 0 ? 'sm:border-l sm:pl-8' : ''}`}>
               <p className="font-mono text-[12px] text-white/40">0{i + 1}</p>
               <h3 className="pe-sans mt-4 text-[24px] leading-tight">{w.title}</h3>
               <p className="mt-3 text-[14px] leading-relaxed text-white/55">{w.text}</p>
